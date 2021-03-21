@@ -9,8 +9,15 @@ import (
 )
 
 type config struct {
-	Addr 	string 	`yaml:"addr"`
-	Port	int 	`yaml:"port"`
+	Addr 		string 	`yaml:"addr"`
+	Port		int 	`yaml:"port"`
+	
+	DBHost		string	`yaml:"db_host"`
+	DBPort		int		`yaml:"db_port"`
+	DBName		string	`yaml:"db_name"`
+	DBUsername	string	`yaml:"db_username"`
+	DBPassword	string	`yaml:"db_password"`
+	DSN			string
 }
 
 var Config = loadConfig()
@@ -36,6 +43,10 @@ func loadConfig() config {
 	if err != nil {
 		log.Fatalf("Got error while unmarshalling %s config file: %v\n", confFn, err)
 	}
+	fmt.Println(confObj.DBUsername)
+
+	confObj.DSN = fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%d sslmode=disable TimeZone=%s",
+		confObj.DBUsername, confObj.DBPassword, confObj.DBName, confObj.DBHost, confObj.DBPort, "Europe/Zaporozhye") // FIXME
 	return confObj
 }
 

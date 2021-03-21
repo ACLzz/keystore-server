@@ -14,7 +14,7 @@ func getFolders() (string, string) {
 		log.Fatal( err )
 	}
 
-	appFolder := fmt.Sprint(usr.HomeDir, "/.abs")
+	appFolder := fmt.Sprint(usr.HomeDir, "/.kss")
 	logFolder := fmt.Sprint(appFolder, "/logs")
 
 	return appFolder, logFolder

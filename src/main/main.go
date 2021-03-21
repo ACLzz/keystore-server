@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/ACLzz/AndroidBeaconService-server/src/api"
-	"github.com/ACLzz/AndroidBeaconService-server/src/utils"
+	"github.com/ACLzz/keystore-server/src/api"
+	"github.com/ACLzz/keystore-server/src/database"
+	"github.com/ACLzz/keystore-server/src/utils"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
@@ -15,22 +16,22 @@ func main() {
 	log.Info("initializing keystore server")
 	signal.Notify(utils.SigCh, os.Interrupt)
 	utils.InitLogger()
+	database.InitDb()
 	
 	s := startServer()
 	finish(s)
 }
 
 func startServer() *http.Server {
-	log.Info("Initializing http server")
+	log.Info(fmt.Sprintf("Initializing http server on %s:%d", utils.Config.Addr, utils.Config.Port))
 	s := http.Server{}
-	c := &utils.Config
 	
 	mainR := api.MainRouter()
-	s.Addr = fmt.Sprintf("%s:%d", c.Addr, c.Port)
+	s.Addr = fmt.Sprintf("%s:%d", utils.Config.Addr, utils.Config.Port)
 	s.Handler = mainR
 	go func() {
 		log.Info("Starting keystore server...")
-		if err := s.ListenAndServe(); err != nil {
+		if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatal(err)
 		}
 		utils.EndCh<-0

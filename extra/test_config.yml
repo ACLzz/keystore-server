@@ -3,5 +3,6 @@ port: 8402
 
 db_host: "127.0.0.1"
 db_port: 5432
+db_name: "keystore"
 db_username: "keykeeper"
 db_password: "CHANGE_PASSWORD"
