@@ -12,8 +12,6 @@ import (
 func (t *Token) genToken() {
 	conn := GetConn()
 	defer conn.Commit()
-	DB, _ := conn.DB()
-	defer DB.Close()
 	
 	// Prepare token dates
 	now := time.Now()
@@ -25,10 +23,10 @@ func (t *Token) genToken() {
 	if err != nil {
 		log.Error("Error in token generator: ", err.Error())
 	}
+	t.Token = fmt.Sprintf("%x", sha256.Sum256(jstruct))
 
 	if tx := conn.Create(t); tx.Error != nil {
 		log.Error("Error in adding token to database: ", tx.Error.Error())
-	} else {
-		t.Token = fmt.Sprintf("%x", sha256.Sum256(jstruct))
 	}
+	conn.Commit()
 }

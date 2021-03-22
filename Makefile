@@ -35,10 +35,14 @@ create_database: DB_NAME = $(call umyml,db_name)
 create_database: NEW_DB_USER = $(call umyml,db_username)
 create_database: NEW_USER_PASSWORD = $(call umyml,db_password)
 create_database:
-	echo ; export TIMEOUT=`sh -c 'if [ $$MODE == test ]; then echo 1; else echo 100000; fi'`; \
-	read -t $$TIMEOUT -p "Enter admin username for postgres database: " DB_USER; \
-	DB_USER=`sh -c 'if [ $$DB_USER ]; then echo $$DB_USER; else echo postgres; fi'`; echo postgres; \
-	export isDev=`sh -c 'if [ $$MODE == dev ]; then echo 1; else echo 0; fi'`; \
+	echo ; \
+	if [ $$MODE != test ]; \
+	then \
+		read -p "Enter admin username for postgres database: " DB_USER; \
+	else \
+	  export DB_USER=postgres; \
+	fi; \
+	export isDev=`sh -c 'if [ $$MODE = test ]; then echo 1; else echo 0; fi'`; \
     psql -h $(DB_HOST) -p $(DB_PORT) -U $$DB_USER -d postgres -v db="$(DB_NAME)" -v username="$(NEW_DB_USER)" -v dev=$$isDev -v password="$(NEW_USER_PASSWORD)" -f database-setup.sql
 
 setup: build move_config create_database

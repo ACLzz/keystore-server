@@ -13,7 +13,7 @@ func (u *User) Register() error {
 	DB, _ := conn.DB()
 	defer DB.Close()
 
-	if exists := u.IsExist(u.Username); exists {
+	if u.IsExist() {
 		return errors.UserExists
 	}
 
@@ -27,16 +27,46 @@ func (u *User) Register() error {
 	return nil
 }
 
-func (u *User) IsExist(username string) bool {
+func (u *User) IsExist() bool {
 	conn := GetConn()
 	DB, _ := conn.DB()
 	defer DB.Close()
 
 	exists := User{}
-	conn.Where("username = ?", username).First(&exists)
+	conn.Where("username = ?", u.Username).First(&exists)
 
 	if exists.Username != u.Username {
 		return false
 	}
 	return true
+}
+
+func (u *User) GenToken() string {
+	t := Token{
+		User:         *u,
+	}
+	t.genToken()
+
+	return t.Token
+}
+
+func (u *User) CheckPassword() bool {
+	password := u.HashPassword()
+
+	conn := GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
+
+	exists := User{}
+	conn.Where("username = ? AND password = ?", u.Username, password).First(&exists)
+
+	if exists.Username != u.Username {
+		return false
+	}
+	return true
+}
+
+func (u *User) HashPassword() string {
+	saltyPassword := fmt.Sprint(u.Password, utils.Config.Salt)
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(saltyPassword)))
 }

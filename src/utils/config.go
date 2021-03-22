@@ -52,6 +52,10 @@ func loadConfig() config {
 		log.Fatalf("Got error while unmarshalling %s config file: %v\n", confFn, err)
 	}
 	
+	if confObj.Test {
+		confObj.DBName = "test_" + confObj.DBName
+	}
+	
 	// Check timezone
 	if _, err := time.LoadLocation(confObj.Timezone); err != nil {
 		log.Fatal("Invalid timezone: ", confObj.Timezone)

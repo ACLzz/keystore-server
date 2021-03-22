@@ -13,20 +13,18 @@ import (
 var Client = &http.Client{}
 var BaseUrl = fmt.Sprintf("http://%s:%d/", utils.Config.Addr, utils.Config.Port)
 
-func CheckResp(resp *http.Response, body []byte, code int, rightBody string) string {
+func CheckResp(resp *http.Response, body []byte, code int, rightBody string, t *testing.T) {
 	if resp.StatusCode != code {
-		return fmt.Sprintf("status must be %d, but it is %d. error: %s", code, resp.StatusCode, body)
+		t.Errorf("status must be %d, but it is %d. error: %s", code, resp.StatusCode, body)
 	} else if string(body) != rightBody {
-		return fmt.Sprintf("response must be %s, but it is %s.", rightBody, string(body))
+		t.Errorf("response must be %s, but it is %s.", rightBody, string(body))
 	}
-
-	return ""
 }
 
 func BuildString(length int) string {
 	str := ""
 	for i := 0; i<length; i++ {
-		str += ""
+		str += "a"
 	}
 	return str
 }

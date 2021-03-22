@@ -10,7 +10,7 @@ import (
 )
 
 func SendError(w http.ResponseWriter, err error, errCode int) {
-	msg := fmt.Sprintf("{\"error\": \"%s\"}", err.Error())
+	msg := fmt.Sprintf("{\"error\":\"%s\"}", err.Error())
 	http.Error(w, msg, errCode)
 }
 
@@ -38,7 +38,7 @@ func ConvBody(w http.ResponseWriter, r *http.Request) map[string]interface{} {
 		return nil
 	}
 
-	if len(string(body[:])) == 0 {
+	if len(string(body[:])) <= 2 {
 		SendError(w, errors.EmptyBodyError, 400)
 		return nil
 	}

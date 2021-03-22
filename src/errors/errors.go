@@ -14,12 +14,14 @@ var InvalidBodyError = errors.New("invalid boy")
 
 // Auth
 var PasswordMaxLengthError = errors.New(fmt.Sprintf("password can't be more than %d symbols", PasswordMaxLengthLimit))
-var LoginMaxLengthError = errors.New(fmt.Sprintf("username can't be more than %d symbols", LoginMaxLengthLimit))
+var LoginMaxLengthError = errors.New(fmt.Sprintf("login can't be more than %d symbols", LoginMaxLengthLimit))
 var PasswordMinLengthError = errors.New(fmt.Sprintf("password must be at least %d symbols", PasswordMinLengthLimit))
-var LoginMinLengthError = errors.New(fmt.Sprintf("username must be at least %d symbols", LoginMinLengthLimit))
+var LoginMinLengthError = errors.New(fmt.Sprintf("login must be at least %d symbols", LoginMinLengthLimit))
 
 var PasswordLocaleError = errors.New("password must contain only english or digit symbols")
 var LoginLocaleError = errors.New("login must contain only english or digit symbols")
+
+var InvalidCredentials = errors.New("invalid credentials")
 
 var NoLoginError = errors.New("no \"login\" in body provided")
 var NoPasswordError = errors.New("no \"password\" in body provided")

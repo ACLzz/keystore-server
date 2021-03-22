@@ -31,7 +31,27 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	SendResp(w, map[string]interface{}{"ok": true}, 201)
 }
 
-func Login(w http.ResponseWriter, r *http.Request) {}
+func Login(w http.ResponseWriter, r *http.Request) {
+	body := ConvBody(w, r)
+	if body == nil {
+		return
+	}
+
+	if isBodyValid := checkAuthFields(body, w); !isBodyValid {
+		return
+	}
+
+	user := database.User{Username: body["login"].(string), Password: body["password"].(string)}
+	if !user.CheckPassword() {
+		SendError(w, errors.InvalidCredentials, 401)
+		return
+	}
+	user.Password = user.HashPassword()
+	
+	log.Infof("User %s logged in", user.Username)
+	token := user.GenToken()
+	SendResp(w, map[string]interface{}{"token": token}, 202)
+}
 
 func ReadUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

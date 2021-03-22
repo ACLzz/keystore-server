@@ -13,23 +13,28 @@ var BaseUser = database.User{
 
 func RegisterUser(id int) {
 	baseUser := BaseUser
-	baseUser.Username = fmt.Sprintf("%s--%d", baseUser.Username, id)
+	baseUser.Username = BuildUsername(id)
 	baseUser.Register()
 }
 
 func DeleteUser(id int, t *testing.T) {
 	baseUser := BaseUser
-	baseUser.Username = fmt.Sprintf("%s--%d", baseUser.Username, id)
+	baseUser.Username = BuildUsername(id)
 
 	conn := database.GetConn()
-	DB, _ := conn.DB()
-	defer DB.Close()
 
-	if exists := baseUser.IsExist(baseUser.Username); !exists {
+	if !baseUser.IsExist() {
+		t.Errorf("User with id %d doesn't exist to delete him.", id)
 		return
 	}
+
+	conn.Unscoped().Where("user_refer = ?", baseUser.Username).Delete(database.Token{})
 
 	if tx := conn.Unscoped().Where("username = ?", baseUser.Username).Delete(database.User{}); tx.Error != nil {
 		t.Errorf("Delete user: %v", tx.Error)
 	}
+}
+
+func BuildUsername(id int) string {
+	return fmt.Sprint(BaseUser.Username, id)
 }
