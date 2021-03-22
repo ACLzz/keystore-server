@@ -6,9 +6,6 @@ CONFIG = $(if \
         $(else)\
                 $(APP_FOLDER)/config.yml)
 
-
-
-
 all: build
 
 build: src/main

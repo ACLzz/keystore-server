@@ -6,3 +6,8 @@ db_port: 5432
 db_name: "keystore"
 db_username: "keykeeper"
 db_password: "CHANGE_PASSWORD"
+
+timezone: "Europe/Zaporozhye"
+token_lifetime: 744             # 31 * 24
+
+salt: "CHANGE_SALT"

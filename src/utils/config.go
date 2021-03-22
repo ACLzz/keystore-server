@@ -6,18 +6,23 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
+	"time"
 )
 
 type config struct {
-	Addr 		string 	`yaml:"addr"`
-	Port		int 	`yaml:"port"`
+	Addr 			string 	`yaml:"addr"`
+	Port			int		`yaml:"port"`
 	
-	DBHost		string	`yaml:"db_host"`
-	DBPort		int		`yaml:"db_port"`
-	DBName		string	`yaml:"db_name"`
-	DBUsername	string	`yaml:"db_username"`
-	DBPassword	string	`yaml:"db_password"`
-	DSN			string
+	DBHost			string	`yaml:"db_host"`
+	DBPort			int		`yaml:"db_port"`
+	DBName			string	`yaml:"db_name"`
+	DBUsername		string	`yaml:"db_username"`
+	DBPassword		string	`yaml:"db_password"`
+	DSN				string
+
+	Timezone		string	`yaml:"timezone"`
+	TokenLifetime	int		`yaml:"token_lifetime"`
+	Salt			string	`yaml:"salt"`
 }
 
 var Config = loadConfig()
@@ -43,10 +48,14 @@ func loadConfig() config {
 	if err != nil {
 		log.Fatalf("Got error while unmarshalling %s config file: %v\n", confFn, err)
 	}
-	fmt.Println(confObj.DBUsername)
+	
+	// Check timezone
+	if _, err := time.LoadLocation(confObj.Timezone); err != nil {
+		log.Fatal("Invalid timezone: ", confObj.Timezone)
+	}
 
 	confObj.DSN = fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%d sslmode=disable TimeZone=%s",
-		confObj.DBUsername, confObj.DBPassword, confObj.DBName, confObj.DBHost, confObj.DBPort, "Europe/Zaporozhye") // FIXME
+		confObj.DBUsername, confObj.DBPassword, confObj.DBName, confObj.DBHost, confObj.DBPort, confObj.Timezone)
 	return confObj
 }
 
