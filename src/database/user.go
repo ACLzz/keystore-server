@@ -13,7 +13,7 @@ func (u *User) Register() error {
 	DB, _ := conn.DB()
 	defer DB.Close()
 
-	if exists := u.isExist(u.Username); exists {
+	if exists := u.IsExist(u.Username); exists {
 		return errors.UserExists
 	}
 
@@ -27,7 +27,7 @@ func (u *User) Register() error {
 	return nil
 }
 
-func (u *User) isExist(username string) bool {
+func (u *User) IsExist(username string) bool {
 	conn := GetConn()
 	DB, _ := conn.DB()
 	defer DB.Close()

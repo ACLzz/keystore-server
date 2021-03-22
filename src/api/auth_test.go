@@ -102,3 +102,18 @@ func TestRegisterLogin(t *testing.T) {
 		tests.CheckResp(resp, body, 422, rightBody)
 	})
 }
+
+func TestUserAlreadyExists(t *testing.T) {
+	testUserId := 1
+	tests.RegisterUser(testUserId)
+	path := "auth/"
+	rightBody := fmt.Sprintf("{\"error\": \"%s\"}\n", errors.UserExists.Error())
+	url := fmt.Sprint(tests.BaseUrl, path)
+
+	body, resp := tests.Post(url,
+		map[string]interface{}{"login": tests.BaseUser.Username + "--1", "password": tests.BuildString(errors.PasswordMinLengthLimit)},
+		"UserAlreadyExists", t)
+	tests.CheckResp(resp, body, 422, rightBody)
+	
+	tests.DeleteUser(testUserId, t)
+}
