@@ -63,16 +63,16 @@ func checkAuthFields(body map[string]interface{}, w http.ResponseWriter) bool {
 
 	// Check fields on limits
 	// TODO min length
-	if len(body["login"].(string)) >= errors.UsernameMaxLengthLimit {
+	if len(body["login"].(string)) > errors.LoginMaxLengthLimit {
 		SendError(w, errors.LoginMaxLengthError, 422)
 		return false
 	}
-	if len(body["password"].(string)) >= errors.PasswordMaxLengthLimit {
+	if len(body["password"].(string)) > errors.PasswordMaxLengthLimit {
 		SendError(w, errors.PasswordMaxLengthError, 422)
 		return false
 	}
 
-	if len(body["login"].(string)) < errors.UsernameMinLengthLimit {
+	if len(body["login"].(string)) < errors.LoginMinLengthLimit {
 		SendError(w, errors.LoginMinLengthError, 422)
 		return false
 	}

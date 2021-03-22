@@ -1,0 +1,48 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2
+
+jobs:
+  build:
+    on:
+      push:
+        paths-ignore:
+          - "**.md"
+          - "docs/**"
+          - "bin/**"
+
+    docker:
+      - image: circleci/golang:latest
+      - image: circleci/postgres:latest
+        environment:
+          POSTGRES_PASSWORD: keyskeep
+
+    environment:
+      MODE: test
+      GOPATH: /go/src/github.com/ACLzz
+
+    working_directory: /go/src/github.com/ACLzz/src/keystore
+
+    steps:
+      - checkout
+
+      - run:
+          name: Waiting for Postgres to be ready
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+
+      - run:
+          name: Installing psql
+          command: sudo apt install postgresql-client
+
+      - run:
+          name: Setting up
+          command: make setup
+
+      - run:
+          name: Building
+          command: make
+
+      - run:
+          name: Run tests
+          command: make tests

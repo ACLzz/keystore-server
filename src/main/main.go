@@ -14,6 +14,11 @@ import (
 
 func main() {
 	log.Info("initializing keystore server")
+	if utils.Config.Dev {
+		log.Warn("You are in development mode. DON'T USE THAT MODE IN PRODUCTION!!!")
+	} else if utils.Config.Test {
+		log.Warn("You are in mode for tests. DON'T USE THAT MODE IN PRODUCTION!!!")
+	}
 	signal.Notify(utils.SigCh, os.Interrupt)
 	utils.InitLogger()
 	database.InitDb()

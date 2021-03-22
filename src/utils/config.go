@@ -12,6 +12,8 @@ import (
 type config struct {
 	Addr 			string 	`yaml:"addr"`
 	Port			int		`yaml:"port"`
+	Dev				bool
+	Test			bool
 	
 	DBHost			string	`yaml:"db_host"`
 	DBPort			int		`yaml:"db_port"`
@@ -26,15 +28,16 @@ type config struct {
 }
 
 var Config = loadConfig()
-var Dev, Test = getMode()
 
 func loadConfig() config {
 	confObj := config{}
 	confFn := "config.yml"
 
-	if Dev {
+	confObj.Dev, confObj.Test = getMode()
+
+	if confObj.Dev {
 		confFn = fmt.Sprint("dev_", confFn)
-	} else if Test{
+	} else if confObj.Test{
 		confFn = fmt.Sprint("test_", confFn)
 	}
 

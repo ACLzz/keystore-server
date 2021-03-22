@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/ACLzz/keystore-server/src/utils"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -21,6 +22,9 @@ func MainRouter() *mux.Router {
 
 	AuthRouter(r)
 	CollectionRouter(r)
+	if utils.Config.Test {
+		DevRouter(r)
+	}
 
 	return r
 }
@@ -58,6 +62,13 @@ func PasswordRouter(parent *mux.Router) *mux.Router {
 		{"/{pid}", ReadPassword, []string{"GET"}},
 		{"/{pid}", UpdatePassword, []string{"PUT"}},
 		{"/{pid}", DeletePassword, []string{"DELETE"}},
+	})
+}
+
+func DevRouter(parent *mux.Router) *mux.Router {
+	log.Info("Initializing dev router")
+	return buildRouter(parent, "/dev/", routesMap{
+		{"/shutdown-server", ShutdownServer, []string{"GET"}},
 	})
 }
 

@@ -1,7 +1,7 @@
 package errors
 
 const PasswordMaxLengthLimit = 25
-const UsernameMaxLengthLimit = 20
+const LoginMaxLengthLimit = 20
 
 const PasswordMinLengthLimit = 8
-const UsernameMinLengthLimit = 4
+const LoginMinLengthLimit = 4
