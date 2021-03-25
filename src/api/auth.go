@@ -28,7 +28,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	log.Info(fmt.Sprintf("Registered %s user", body["login"]))
 
 	// Response that all ok
-	SendResp(w, map[string]interface{}{"ok": true}, 201)
+	SendResp(w, nil, 201)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +50,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	
 	log.Infof("User %s logged in", user.Username)
 	token := user.GenToken()
-	SendResp(w, map[string]interface{}{"token": token}, 202)
+	SendResp(w, &map[string]interface{}{"token": token}, 202)
 }
 
 func ReadUser(w http.ResponseWriter, r *http.Request) {
@@ -66,9 +66,26 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	uid := vars["uid"]
-	log.Info("Delete ", uid, " user")
+	body := ConvBody(w, r)
+	if body == nil {
+		return
+	}
+	token := VerifyAuth(w, body)
+	if token == nil {
+		return
+	}
+	user := token.GetUser()
+	if user == nil {
+		SendError(w, errors.UserNotExists, 404)
+		return
+	}
+
+	log.Info("Delete ", user.Username, " user")
+	if user.Delete() {
+		SendResp(w, nil, 200)
+	} else {
+		SendError(w, errors.InternalError, 500)
+	}
 }
 
 func checkAuthFields(body map[string]interface{}, w http.ResponseWriter) bool {

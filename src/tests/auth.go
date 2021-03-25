@@ -17,11 +17,25 @@ func RegisterUser(id int) {
 	baseUser.Register()
 }
 
+func GetToken(id int, t *testing.T) string {
+	baseUser := BaseUser
+	baseUser.Username = BuildUsername(id)
+
+	if !baseUser.IsExist() {
+		t.Errorf("User with id %d doesn't exist to get his token.", id)
+		return ""
+	}
+
+	return baseUser.GenToken()
+}
+
 func DeleteUser(id int, t *testing.T) {
 	baseUser := BaseUser
 	baseUser.Username = BuildUsername(id)
 
 	conn := database.GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
 
 	if !baseUser.IsExist() {
 		t.Errorf("User with id %d doesn't exist to delete him.", id)

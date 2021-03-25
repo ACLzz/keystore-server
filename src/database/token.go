@@ -11,6 +11,8 @@ import (
 
 func (t *Token) genToken() {
 	conn := GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
 	defer conn.Commit()
 	
 	// Prepare token dates
@@ -29,4 +31,17 @@ func (t *Token) genToken() {
 		log.Error("Error in adding token to database: ", tx.Error.Error())
 	}
 	conn.Commit()
+}
+
+func (t *Token) GetUser() *User {
+	conn := GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
+	var user User
+
+	if tx := conn.First(&user).Where("id = ?", t.UserRefer); tx.Error != nil {
+		log.Error(tx.Error)
+		return nil
+	}
+	return &user
 }

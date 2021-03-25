@@ -10,22 +10,39 @@ var InternalError = errors.New("internal error")
 
 // Requests
 var EmptyBodyError = errors.New("empty body")
-var InvalidBodyError = errors.New("invalid boy")
+var InvalidBodyError = errors.New("invalid body")
 
 // Auth
-var PasswordMaxLengthError = errors.New(fmt.Sprintf("password can't be more than %d symbols", PasswordMaxLengthLimit))
-var LoginMaxLengthError = errors.New(fmt.Sprintf("login can't be more than %d symbols", LoginMaxLengthLimit))
-var PasswordMinLengthError = errors.New(fmt.Sprintf("password must be at least %d symbols", PasswordMinLengthLimit))
-var LoginMinLengthError = errors.New(fmt.Sprintf("login must be at least %d symbols", LoginMinLengthLimit))
+var PasswordMaxLengthError = errors.New(lengthMax("password", PasswordMaxLengthLimit))
+var LoginMaxLengthError = errors.New(lengthMax("login", LoginMaxLengthLimit))
+var PasswordMinLengthError = errors.New(lengthMin("password", PasswordMinLengthLimit))
+var LoginMinLengthError = errors.New(lengthMin("login", LoginMinLengthLimit))
 
 var PasswordLocaleError = errors.New("password must contain only english or digit symbols")
 var LoginLocaleError = errors.New("login must contain only english or digit symbols")
 
 var InvalidCredentials = errors.New("invalid credentials")
 
-var NoLoginError = errors.New("no \"login\" in body provided")
-var NoPasswordError = errors.New("no \"password\" in body provided")
+var NoLoginError = errors.New(noField("login"))
+var NoPasswordError = errors.New(noField("password"))
+
+var NoToken = errors.New(noField("token"))
+var InvalidToken = errors.New("invalid token")
+var ExpiredToken = errors.New("your token has expired")
 
 // database.User
 var UserExists = errors.New("user already exists")
 var UserNotExists = errors.New("user not exists")
+
+
+func noField(field string) string {
+	return fmt.Sprintf("no \"%s\" was sent", field)
+}
+
+func lengthMax(field string, limit int) string {
+	return fmt.Sprintf("%s can't be more than %d symbols", field, limit)
+}
+
+func lengthMin(field string, limit int) string {
+	return fmt.Sprintf("%s must be at least %d symbols", field, limit)
+}

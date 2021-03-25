@@ -32,11 +32,11 @@ func MainRouter() *mux.Router {
 func AuthRouter(parent *mux.Router) *mux.Router {
 	log.Info("Initializing auth router")
 	return buildRouter(parent, "/auth/", routesMap{
-		{"/", Register, []string{"POST"}},
 		{"/login", Login, []string{"POST"}},
-		{"/{uid}", ReadUser, []string{"GET"}},
-		{"/{uid}", UpdateUser, []string{"PUT"}},
-		{"/{uid}", DeleteUser, []string{"DELETE"}},
+		{"/", ReadUser, []string{"GET"}},
+		{"/", Register, []string{"POST"}},
+		{"/", UpdateUser, []string{"PUT"}},
+		{"/", DeleteUser, []string{"DELETE"}},
 	})
 }
 

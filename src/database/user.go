@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ACLzz/keystore-server/src/errors"
 	"github.com/ACLzz/keystore-server/src/utils"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -12,7 +13,6 @@ func (u *User) Register() error {
 	conn := GetConn()
 	DB, _ := conn.DB()
 	defer DB.Close()
-
 	if u.IsExist() {
 		return errors.UserExists
 	}
@@ -69,4 +69,29 @@ func (u *User) CheckPassword() bool {
 func (u *User) HashPassword() string {
 	saltyPassword := fmt.Sprint(u.Password, utils.Config.Salt)
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(saltyPassword)))
+}
+
+func (u *User) Delete() bool {
+	var _u User
+	conn := GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
+	defer conn.Commit()
+
+	conn.Unscoped().First(&_u).Where("username = ?", u.Username)
+	if tx := conn.Unscoped().Delete(&_u); tx.Error != nil {
+		log.Error(tx.Error)
+		return false
+	}
+
+	if tx := conn.Unscoped().Where("user_refer = ?", _u.Id).Delete(Token{}); tx.Error != nil {
+		log.Error(tx.Error)
+		return false
+	}
+
+	if tx := conn.Unscoped().Where("username = ?", u.Username).Delete(User{}); tx.Error != nil {
+		log.Error(tx.Error)
+		return false
+	}
+	return true
 }
