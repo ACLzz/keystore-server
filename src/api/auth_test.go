@@ -188,7 +188,7 @@ func TestVerifyAuth(_t *testing.T) {
 	})
 
 	_t.Run("invalid token", func(t *testing.T) {
-		body, resp := d(map[string]interface{}{"token": "invalid_token"}, t)
+		body, resp := d(map[string]interface{}{"token": "invalidToken"}, t)
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.InvalidToken)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
@@ -197,7 +197,7 @@ func TestVerifyAuth(_t *testing.T) {
 	_t.Run("expired token", func(t *testing.T) {
 		testUserId := 4
 		_token := database.Token{
-			Token:        "expired_token",
+			Token:        "expiredToken",
 			UserRefer:    "1",
 			User:         database.User{Id: 1, Username: tests.BuildUsername(testUserId)},
 			CreationDate: time.Now(),
@@ -219,31 +219,69 @@ func TestVerifyAuth(_t *testing.T) {
 	})
 }
 
-func TestDeleteUser(_t *testing.T) {
+func TestDeleteUser(t *testing.T) {
 	path := "auth/"
 	url := fmt.Sprint(tests.BaseUrl, path)
 
-	d := func(data map[string]interface{}, t *testing.T) ([]byte, *http.Response) {
+	d := func(data map[string]interface{}) ([]byte, *http.Response) {
 		return tests.Delete(url, data, t)
 	}
-	
-	_t.Run("delete user", func(t *testing.T) {
-		testUserId := 5
-		tests.RegisterUser(testUserId)
-		token := tests.GetToken(testUserId, _t)
 
-		body, resp := d(map[string]interface{}{"token": token}, t)
-		rightBody := ""
+	testUserId := 5
+	tests.RegisterUser(testUserId)
+	token := tests.GetToken(testUserId, t)
 
-		tests.CheckResp(resp, body, 200, rightBody, t)
-		
-		var user database.User
-		username := tests.BuildUsername(testUserId)
-		conn := database.GetConn()
-		DB, _ := conn.DB()
-		defer DB.Close()
-		if tx := conn.First(&user).Where("username = ?", username); tx.Error != gorm.ErrRecordNotFound {
-			t.Error("User haven't deleted")
-		}
-	})
+	body, resp := d(map[string]interface{}{"token": token})
+	rightBody := ""
+
+	tests.CheckResp(resp, body, 200, rightBody, t)
+
+	var user database.User
+	username := tests.BuildUsername(testUserId)
+	conn := database.GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
+	if tx := conn.First(&user).Where("username = ?", username); tx.Error != gorm.ErrRecordNotFound {
+		t.Error("User haven't deleted")
+	}
+}
+
+func TestUpdateUser(t *testing.T) {
+	path := "auth/"
+	url := fmt.Sprint(tests.BaseUrl, path)
+
+	p := func(data map[string]interface{}) ([]byte, *http.Response) {
+		return tests.Put(url, data, t)
+	}
+
+	testUserId := 6
+	updatedUsername := fmt.Sprint("updatedUsername", testUserId)
+	updatedPassword := "updatedPassword"
+	tests.RegisterUser(testUserId)
+	token := tests.GetToken(testUserId, t)
+
+	body, resp := p(map[string]interface{}{"token": token, "login": updatedUsername, "password": updatedPassword})
+	rightBody := ""
+
+	tests.CheckResp(resp, body, 200, rightBody, t)
+
+	var user database.User
+	conn := database.GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
+	if tx := conn.First(&user).Where("username = ?", updatedUsername); tx.Error != nil {
+		t.Error("User haven't updated username")
+	}
+
+	emptyUser := database.User{Password: updatedPassword}
+	if user.Password != emptyUser.HashPassword() {
+		fmt.Println(user.Password, emptyUser.Password)
+		t.Error("Password haven't updated")
+	}
+
+	conn.Unscoped().Where("user_refer = ?", user.Username).Delete(database.Token{})
+
+	if tx := conn.Unscoped().Where("username = ?", user.Username).Delete(database.User{}); tx.Error != nil {
+		t.Errorf("Delete user: %v", tx.Error)
+	}
 }

@@ -66,6 +66,16 @@ func VerifyAuth(w http.ResponseWriter, body map[string]interface{}) *database.To
 		return nil
 	}
 
+	// Check token for non-digit and non-letters symbols
+	for _, run := range token.(string) {
+		if (run <= 90 && run >= 65) || (run <= 57 && run >= 48) || (run <= 122 && run >= 97) {
+			continue
+		}
+		SendError(w, errors.TokenDeniedSymbolsError, 422)
+		log.Warn("Strange token was sent: ", token.(string))
+		return nil
+	}
+
 	conn := database.GetConn()
 	DB, _ := conn.DB()
 	defer DB.Close()
@@ -88,4 +98,60 @@ func VerifyAuth(w http.ResponseWriter, body map[string]interface{}) *database.To
 	}
 
 	return &dbToken
+}
+
+func CheckAuthFields(body map[string]interface{}, w http.ResponseWriter) bool {
+	if _, ok := body["login"]; !ok {
+		SendError(w, errors.NoLoginError, 400)
+		return false
+	} else if _, ok := body["password"]; !ok {
+		SendError(w, errors.NoPasswordError, 400)
+		return false
+	}
+
+	return CheckAuthFieldsLimits(body, w)
+}
+
+func CheckAuthFieldsLimits(body map[string]interface{}, w http.ResponseWriter) bool {
+	if login, ok := body["login"]; ok {
+		if len(login.(string)) > errors.LoginMaxLengthLimit {
+			SendError(w, errors.LoginMaxLengthError, 422)
+			return false
+		}
+		if len(login.(string)) < errors.LoginMinLengthLimit {
+			SendError(w, errors.LoginMinLengthError, 422)
+			return false
+		}
+
+		// Check if login contains non-ascii chars
+		for _, run := range login.(string) {
+			if (run <= 125 && run >= 65) || (run <= 57 && run >= 48) {
+				continue
+			}
+			SendError(w, errors.LoginLocaleError, 422)
+			return false
+		}
+	}
+
+	if password, ok := body["password"]; ok {
+		if len(password.(string)) > errors.PasswordMaxLengthLimit {
+			SendError(w, errors.PasswordMaxLengthError, 422)
+			return false
+		}
+		if len(password.(string)) < errors.PasswordMinLengthLimit {
+			SendError(w, errors.PasswordMinLengthError, 422)
+			return false
+		}
+
+		// Check if password contains non-ascii chars
+		for _, run := range password.(string) {
+			if (run <= 125 && run >= 65) || (run <= 57 && run >= 48) {
+				continue
+			}
+			SendError(w, errors.PasswordLocaleError, 422)
+			return false
+		}
+	}
+
+	return true
 }

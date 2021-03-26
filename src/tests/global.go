@@ -42,12 +42,20 @@ func Post(url string, data map[string]interface{}, t *testing.T) ([]byte, *http.
 }
 
 func Delete(url string, data map[string]interface{}, t *testing.T) ([]byte, *http.Response) {
+	return customRequest("DELETE", url, data, t)
+}
+
+func Put(url string, data map[string]interface{}, t *testing.T) ([]byte, *http.Response) {
+	return customRequest("PUT", url, data, t)
+}
+
+func customRequest(method string, url string, data map[string]interface{}, t *testing.T) ([]byte, *http.Response) {
 	jvalues, _ := json.Marshal(data)
-	req, err := http.NewRequest("DELETE", url, bytes.NewBuffer(jvalues))
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(jvalues))
 	if err != nil {
 		t.Error(err)
 	}
-	
+
 	resp, err := Client.Do(req)
 	if err != nil {
 		t.Error(err)

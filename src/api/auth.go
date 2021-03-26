@@ -15,7 +15,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	if isBodyValid := checkAuthFields(body, w); !isBodyValid {
+	if isBodyValid := CheckAuthFields(body, w); !isBodyValid {
 		return
 	}
 
@@ -37,7 +37,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if isBodyValid := checkAuthFields(body, w); !isBodyValid {
+	if isBodyValid := CheckAuthFields(body, w); !isBodyValid {
 		return
 	}
 
@@ -46,7 +46,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		SendError(w, errors.InvalidCredentials, 401)
 		return
 	}
-	user.Password = user.HashPassword()
+	conn := database.GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
+	user.HashPassword()
+	conn.First(&user).Where("username = ? and password = ?", user.Username, user.HashPassword(), user.Password)
 	
 	log.Infof("User %s logged in", user.Username)
 	token := user.GenToken()
@@ -60,9 +64,39 @@ func ReadUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	uid := vars["uid"]
-	log.Info("Updating info for ", uid, " user")
+	body := ConvBody(w, r)
+	if body == nil {
+		return
+	}
+	token := VerifyAuth(w, body)
+	if token == nil {
+		return
+	}
+
+	if isBodyValid := CheckAuthFieldsLimits(body, w); !isBodyValid {
+		return
+	}
+
+	user := token.GetUser()
+	if user == nil {
+		SendError(w, errors.UserNotExists, 404)
+		return
+	}
+
+	log.Info("Updating info for ", user.Id, " user")
+	if username, ok := body["login"]; ok {
+		user.Username = username.(string)
+	}
+	if password, ok := body["password"]; ok {
+		user.Password = password.(string)
+		user.Password = user.HashPassword()
+	}
+	
+	if user.Update() {
+		SendResp(w, nil, 200)
+	} else {
+		SendError(w, errors.InternalError, 500)
+	}
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
@@ -80,61 +114,10 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Info("Delete ", user.Username, " user")
+	log.Info("Delete ", user.Id, " user")
 	if user.Delete() {
 		SendResp(w, nil, 200)
 	} else {
 		SendError(w, errors.InternalError, 500)
 	}
-}
-
-func checkAuthFields(body map[string]interface{}, w http.ResponseWriter) bool {
-	// Check if fields has been sent
-	if _, ok := body["login"]; !ok {
-		SendError(w, errors.NoLoginError, 400)
-		return false
-	} else if _, ok := body["password"]; !ok {
-		SendError(w, errors.NoPasswordError, 400)
-		return false
-	}
-
-	// Check fields on limits
-	// TODO min length
-	if len(body["login"].(string)) > errors.LoginMaxLengthLimit {
-		SendError(w, errors.LoginMaxLengthError, 422)
-		return false
-	}
-	if len(body["password"].(string)) > errors.PasswordMaxLengthLimit {
-		SendError(w, errors.PasswordMaxLengthError, 422)
-		return false
-	}
-
-	if len(body["login"].(string)) < errors.LoginMinLengthLimit {
-		SendError(w, errors.LoginMinLengthError, 422)
-		return false
-	}
-	if len(body["password"].(string)) < errors.PasswordMinLengthLimit {
-		SendError(w, errors.PasswordMinLengthError, 422)
-		return false
-	}
-
-	// Check if login contains non-ascii chars
-	for _, run := range body["login"].(string) {
-		if (run <= 125 && run >= 65) || (run <= 57 && run >= 48) {
-			continue
-		}
-		SendError(w, errors.LoginLocaleError, 422)
-		return false
-	}
-
-	// Check if password contains non-ascii chars
-	for _, run := range body["password"].(string) {
-		if (run <= 125 && run >= 65) || (run <= 57 && run >= 48) {
-			continue
-		}
-		SendError(w, errors.PasswordLocaleError, 422)
-		return false
-	}
-	
-	return true
 }

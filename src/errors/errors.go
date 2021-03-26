@@ -20,6 +20,7 @@ var LoginMinLengthError = errors.New(lengthMin("login", LoginMinLengthLimit))
 
 var PasswordLocaleError = errors.New("password must contain only english or digit symbols")
 var LoginLocaleError = errors.New("login must contain only english or digit symbols")
+var TokenDeniedSymbolsError = errors.New("your token includes denied symbols")
 
 var InvalidCredentials = errors.New("invalid credentials")
 
