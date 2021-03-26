@@ -29,6 +29,10 @@ func BuildString(length int) string {
 	return str
 }
 
+func Get(url string, data map[string]interface{}, t *testing.T) ([]byte, *http.Response) {
+	return customRequest("GET", url, data, t)
+}
+
 func Post(url string, data map[string]interface{}, t *testing.T) ([]byte, *http.Response) {
 	jvalues, _ := json.Marshal(data)
 	resp, err := Client.Post(url, "application/json", bytes.NewBuffer(jvalues))
@@ -61,7 +65,7 @@ func customRequest(method string, url string, data map[string]interface{}, t *te
 		t.Error(err)
 	}
 
-	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
 	return body, resp
 }

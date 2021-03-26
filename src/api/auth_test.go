@@ -285,3 +285,26 @@ func TestUpdateUser(t *testing.T) {
 		t.Errorf("Delete user: %v", tx.Error)
 	}
 }
+
+func TestReadUser(t *testing.T) {
+	path := "auth/"
+	url := fmt.Sprint(tests.BaseUrl, path)
+
+	testUserId := 7
+	tests.RegisterUser(testUserId)
+	token := tests.GetToken(testUserId, t)
+	body, resp := tests.Get(url, map[string]interface{}{"token": token}, t)
+
+	var user database.User
+	conn := database.GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
+	if tx := conn.First(&user).Where("username = ?", tests.BuildUsername(testUserId)); tx.Error != nil {
+		t.Error("User haven't updated username")
+	}
+
+	rightBody := fmt.Sprintf("{\"registered\":\"%s\",\"username\":\"%s\"}", user.RegistrationDate.Format("2006-01-02T15:04:05Z07:00"), user.Username)
+
+	tests.CheckResp(resp, body, 200, rightBody, t)
+	tests.DeleteUser(testUserId, t)
+}

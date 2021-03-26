@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/ACLzz/keystore-server/src/database"
 	"github.com/ACLzz/keystore-server/src/errors"
-	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 )
@@ -58,9 +57,26 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func ReadUser(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	uid := vars["uid"]
-	log.Info("Getting info for ", uid, " user")
+	body := ConvBody(w, r)
+	if body == nil {
+		return
+	}
+	token := VerifyAuth(w, body)
+	if token == nil {
+		return
+	}
+
+	user := token.GetUser()
+	if user == nil {
+		SendError(w, errors.UserNotExists, 404)
+		return
+	}
+	log.Info("Getting info for ", user.Id, " user")
+
+	SendResp(w, &map[string]interface{}{
+		"username": user.Username,
+		"registered": user.RegistrationDate.Format("2006-01-02T15:04:05Z07:00"),
+	}, 200)
 }
 
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
