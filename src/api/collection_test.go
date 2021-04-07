@@ -123,3 +123,60 @@ func TestFetchCollections(t *testing.T) {
 	tests.DeleteCollection(testCollection2Id, user, t)
 	tests.DeleteUser(testUserId, t)
 }
+
+func TestUpdateCollection(_t *testing.T) {
+	testUserId := 11
+	tests.RegisterUser(testUserId)
+	token := tests.GetToken(testUserId, _t)
+	user := *tests.GetUser(testUserId)
+	_path := "collection/"
+	
+	_t.Run("collection does not exist", func(t *testing.T) {
+		path := fmt.Sprint(_path, "not_exist")
+		url := fmt.Sprint(tests.BaseUrl, path)
+		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.CollectionNotExist.Error())
+
+		body, resp := tests.Put(url, map[string]interface{}{"title": "test", "token": token}, t)
+		tests.CheckResp(resp, body, 404, rightBody, t)
+	})
+	
+	_t.Run("collection already exist", func(t *testing.T) {
+		testCollection1Id := 5
+		testCollection2Id := 6
+		tests.CreateCollection(testCollection1Id, user)
+		tests.CreateCollection(testCollection2Id, user)
+		title := tests.BuildTitle(testCollection1Id)
+		path := fmt.Sprint(_path, title)
+		url := fmt.Sprint(tests.BaseUrl, path)
+		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.CollectionExist.Error())
+
+		body, resp := tests.Put(url, map[string]interface{}{"title": tests.BuildTitle(testCollection2Id), "token": token}, t)
+		tests.CheckResp(resp, body, 422, rightBody, t)
+
+		tests.DeleteCollection(testCollection1Id, user, t)
+		tests.DeleteCollection(testCollection2Id, user, t)
+	})
+	
+	_t.Run("update", func(t *testing.T) {
+		testCollectionId := 7
+		tests.CreateCollection(testCollectionId, user)
+		title := tests.BuildTitle(testCollectionId)
+		newTitle := fmt.Sprint(title, "updated")
+		path := fmt.Sprint(_path, title)
+		url := fmt.Sprint(tests.BaseUrl, path)
+		rightBody := ""
+
+		body, resp := tests.Put(url, map[string]interface{}{"title": newTitle, "token": token}, t)
+		tests.CheckResp(resp, body, 200, rightBody, t)
+
+		conn := database.GetConn()
+		DB, _ := conn.DB()
+		defer DB.Close()
+		
+		if tx := conn.Unscoped().Where("title = ? and user_refer = ?", newTitle, user.Id).Delete(database.Collection{}); tx.Error != nil {
+			t.Error(tx.Error)
+		}
+	})
+
+	tests.DeleteUser(testUserId, _t)
+}

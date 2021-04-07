@@ -12,4 +12,5 @@ var CollectionLocaleError = errors.New(localeError("title"))
 
 var NoTitleError = errors.New(noField("title"))
 
-var CollectionExist = errors.New("collection with that name already exist")
+var CollectionExist = errors.New("collection with that title already exist")
+var CollectionNotExist = errors.New("collection with that title does not exist")
