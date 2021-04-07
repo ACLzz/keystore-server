@@ -101,3 +101,25 @@ func TestCreateCollection(t *testing.T) {
 
 	tests.DeleteUser(testUserId, t)
 }
+
+func TestFetchCollections(t *testing.T) {
+	testUserId := 10
+	tests.RegisterUser(testUserId)
+	token := tests.GetToken(testUserId, t)
+	user := *tests.GetUser(testUserId)
+	testCollection1Id := 3
+	testCollection2Id := 4
+	tests.CreateCollection(testCollection1Id, user)
+	tests.CreateCollection(testCollection2Id, user)
+
+	path := "collection/"
+	rightBody := fmt.Sprintf("[\"%s\",\"%s\"]", tests.BuildTitle(testCollection1Id), tests.BuildTitle(testCollection2Id))
+	url := fmt.Sprint(tests.BaseUrl, path)
+
+	body, resp := tests.Get(url, map[string]interface{}{"token": token}, t)
+	tests.CheckResp(resp, body, 200, rightBody, t)
+
+	tests.DeleteCollection(testCollection1Id, user, t)
+	tests.DeleteCollection(testCollection2Id, user, t)
+	tests.DeleteUser(testUserId, t)
+}

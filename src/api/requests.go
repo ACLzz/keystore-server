@@ -35,6 +35,23 @@ func SendResp(w  http.ResponseWriter, resp *map[string]interface{}, statusCode i
 	}
 }
 
+func SendArray(w  http.ResponseWriter, resp *[]interface{}, statusCode int) {
+	if resp != nil {
+		jresp, err := json.Marshal(resp)
+		if err != nil {
+			log.Error("Error in json marshalling: ", err)
+			SendError(w, errors.InternalError, 500)
+			return
+		}
+		w.WriteHeader(statusCode)
+		if _, err := w.Write(jresp); err != nil {
+			log.WithFields(log.Fields{"err": err}).Error("Error in send response.")
+		}
+	} else {
+		w.WriteHeader(statusCode)
+	}
+}
+
 
 func ConvBody(w http.ResponseWriter, r *http.Request) map[string]interface{} {
 	defer r.Body.Close()

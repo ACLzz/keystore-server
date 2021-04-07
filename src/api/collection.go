@@ -45,7 +45,23 @@ func CreateCollection(w http.ResponseWriter, r *http.Request) {
 	SendResp(w, nil, 201)
 }
 
-func FetchCollections(w http.ResponseWriter, r *http.Request) {}
+func FetchCollections(w http.ResponseWriter, r *http.Request) {
+	body := ConvBody(w, r)
+	if body == nil {
+		return
+	}
+	token := VerifyAuth(w, body)
+	if token == nil {
+		return
+	}
+	collections := token.FetchCollections()
+	var collTitles []interface{}
+	for _, coll := range collections {
+		collTitles = append(collTitles, coll.Title)
+	}
+
+	SendArray(w, &collTitles, 200)
+}
 
 func ListCollection(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
