@@ -78,7 +78,7 @@ func (u *User) Delete() bool {
 	defer DB.Close()
 	defer conn.Commit()
 
-	conn.Unscoped().First(&_u).Where("username = ?", u.Username)
+	conn.Unscoped().Where("username = ?", u.Username).First(&_u)
 	if tx := conn.Unscoped().Delete(&_u); tx.Error != nil {
 		log.Error(tx.Error)
 		return false

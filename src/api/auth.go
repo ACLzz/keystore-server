@@ -48,9 +48,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	conn := database.GetConn()
 	DB, _ := conn.DB()
 	defer DB.Close()
-	user.HashPassword()
-	conn.First(&user).Where("username = ? and password = ?", user.Username, user.HashPassword(), user.Password)
-	
+	conn.Where("username = ? and password = ?", user.Username, user.HashPassword()).First(&user)
+
 	log.Infof("User %s logged in", user.Username)
 	token := user.GenToken()
 	SendResp(w, &map[string]interface{}{"token": token}, 202)

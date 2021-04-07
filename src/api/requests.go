@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ACLzz/keystore-server/src/database"
 	"github.com/ACLzz/keystore-server/src/errors"
+	"github.com/ACLzz/keystore-server/src/utils"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"io/ioutil"
@@ -81,7 +82,7 @@ func VerifyAuth(w http.ResponseWriter, body map[string]interface{}) *database.To
 	defer DB.Close()
 
 	dbToken := database.Token{}
-	tx := conn.First(&dbToken, "token = ?", token)
+	tx := conn.Where("token = ?", token).First(&dbToken)
 	if tx.Error == gorm.ErrRecordNotFound {
 		SendError(w, errors.InvalidToken, 422)
 		log.Warn("Invalid token request with token ", token)
@@ -114,44 +115,64 @@ func CheckAuthFields(body map[string]interface{}, w http.ResponseWriter) bool {
 
 func CheckAuthFieldsLimits(body map[string]interface{}, w http.ResponseWriter) bool {
 	if login, ok := body["login"]; ok {
-		if len(login.(string)) > errors.LoginMaxLengthLimit {
-			SendError(w, errors.LoginMaxLengthError, 422)
+		if err := CheckLimits(body["login"].(string), utils.LoginMinLengthLimit, utils.LoginMaxLengthLimit,
+			errors.LoginMinLengthError, errors.LoginMaxLengthError); err != nil {
+			SendError(w, err, 422)
 			return false
 		}
-		if len(login.(string)) < errors.LoginMinLengthLimit {
-			SendError(w, errors.LoginMinLengthError, 422)
-			return false
-		}
-
-		// Check if login contains non-ascii chars
-		for _, run := range login.(string) {
-			if (run <= 125 && run >= 65) || (run <= 57 && run >= 48) {
-				continue
-			}
+		
+		if !CheckNonAscii(login.(string)) {
 			SendError(w, errors.LoginLocaleError, 422)
 			return false
 		}
 	}
 
 	if password, ok := body["password"]; ok {
-		if len(password.(string)) > errors.PasswordMaxLengthLimit {
-			SendError(w, errors.PasswordMaxLengthError, 422)
+		if err := CheckLimits(body["password"].(string), utils.PasswordMinLengthLimit, utils.PasswordMaxLengthLimit,
+			errors.PasswordMinLengthError, errors.PasswordMaxLengthError); err != nil {
+			SendError(w, err, 422)
 			return false
 		}
-		if len(password.(string)) < errors.PasswordMinLengthLimit {
-			SendError(w, errors.PasswordMinLengthError, 422)
-			return false
-		}
-
-		// Check if password contains non-ascii chars
-		for _, run := range password.(string) {
-			if (run <= 125 && run >= 65) || (run <= 57 && run >= 48) {
-				continue
-			}
+		
+		if !CheckNonAscii(password.(string)) {
 			SendError(w, errors.PasswordLocaleError, 422)
 			return false
 		}
 	}
 
+	return true
+}
+
+func CheckLimits(field string, lowLimit int, highLimit int, lowLimitError error, highLimitError error) error {
+	if len(field) > highLimit {
+		return highLimitError
+	}
+	if len(field) < lowLimit {
+		return lowLimitError
+	}
+	return nil
+}
+
+func CheckNonAscii(field string) bool {
+	for _, run := range field {
+		if (run <= 125 && run >= 65) || (run <= 57 && run >= 48) {
+			continue
+		}
+		return false
+	}
+	return true
+}
+
+func CheckCollectionTitle(title string, w http.ResponseWriter) bool {
+	if err := CheckLimits(title, utils.CollectionTitleMinLengthLimit, utils.CollectionTitleMaxLengthLimit,
+		errors.CollectionTitleMinLengthError, errors.CollectionTitleMaxLengthError); err != nil {
+		SendError(w, err, 422)
+		return false
+	}
+
+	if !CheckNonAscii(title) {
+		SendError(w, errors.CollectionLocaleError, 422)
+		return false
+	}
 	return true
 }

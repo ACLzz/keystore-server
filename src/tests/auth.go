@@ -44,7 +44,7 @@ func DeleteUser(id int, t *testing.T) {
 		return
 	}
 
-	conn.Unscoped().Where("user_refer = ?", baseUser.Username).Delete(database.Token{})
+	conn.Unscoped().Where("user_refer = ?", baseUser.Id).Delete(database.Token{})
 
 	if tx := conn.Unscoped().Where("username = ?", baseUser.Username).Delete(database.User{}); tx.Error != nil {
 		t.Errorf("Delete user: %v", tx.Error)
@@ -53,4 +53,15 @@ func DeleteUser(id int, t *testing.T) {
 
 func BuildUsername(id int) string {
 	return fmt.Sprint(BaseUser.Username, id)
+}
+
+func GetUser(id int) *database.User {
+	conn := database.GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
+
+	var user database.User
+	conn.First(&user).Where("username = ?", BuildUsername(id))
+	
+	return &user
 }

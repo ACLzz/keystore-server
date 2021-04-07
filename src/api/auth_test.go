@@ -5,6 +5,7 @@ import (
 	"github.com/ACLzz/keystore-server/src/database"
 	"github.com/ACLzz/keystore-server/src/errors"
 	"github.com/ACLzz/keystore-server/src/tests"
+	"github.com/ACLzz/keystore-server/src/utils"
 	"gorm.io/gorm"
 	"net/http"
 	"testing"
@@ -29,7 +30,7 @@ func TestValidPassword(_t *testing.T) {
 	
 	_t.Run("empty password", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.NoPasswordError.Error())
-		data := map[string]interface{}{"login": tests.BuildString(errors.LoginMinLengthLimit)}
+		data := map[string]interface{}{"login": tests.BuildString(utils.LoginMinLengthLimit)}
 		body, resp := post(data, t)
 		
 		tests.CheckResp(resp, body, 400, rightBody, t)
@@ -37,8 +38,8 @@ func TestValidPassword(_t *testing.T) {
 
 	_t.Run("minimum password", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PasswordMinLengthError.Error())
-		data := map[string]interface{}{"login": tests.BuildString(errors.LoginMinLengthLimit),
-			"password": tests.BuildString(errors.PasswordMinLengthLimit - 1)}
+		data := map[string]interface{}{"login": tests.BuildString(utils.LoginMinLengthLimit),
+			"password": tests.BuildString(utils.PasswordMinLengthLimit - 1)}
 		body, resp := post(data, t)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
@@ -46,8 +47,8 @@ func TestValidPassword(_t *testing.T) {
 	
 	_t.Run("maximum password", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PasswordMaxLengthError.Error())
-		data := map[string]interface{}{"login": tests.BuildString(errors.LoginMinLengthLimit),
-			"password": tests.BuildString(errors.PasswordMaxLengthLimit + 1)}
+		data := map[string]interface{}{"login": tests.BuildString(utils.LoginMinLengthLimit),
+			"password": tests.BuildString(utils.PasswordMaxLengthLimit + 1)}
 		body, resp := post(data, t)
 		
 		tests.CheckResp(resp, body, 422, rightBody, t)
@@ -55,8 +56,8 @@ func TestValidPassword(_t *testing.T) {
 
 	_t.Run("non-ascii password", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PasswordLocaleError.Error())
-		data := map[string]interface{}{"login": tests.BuildString(errors.LoginMinLengthLimit), "password":
-		tests.BuildString(errors.PasswordMinLengthLimit + 1) + "тест"}
+		data := map[string]interface{}{"login": tests.BuildString(utils.LoginMinLengthLimit), "password":
+		tests.BuildString(utils.PasswordMinLengthLimit+ 1) + "тест"}
 		body, resp := post(data, t)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
@@ -72,7 +73,7 @@ func TestValidLogin(_t *testing.T) {
 
 	_t.Run("empty login", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.NoLoginError.Error())
-		data := map[string]interface{}{"password": tests.BuildString(errors.PasswordMinLengthLimit)}
+		data := map[string]interface{}{"password": tests.BuildString(utils.PasswordMinLengthLimit)}
 		body, resp := post(data, t)
 
 		tests.CheckResp(resp, body, 400, rightBody, t)
@@ -80,8 +81,8 @@ func TestValidLogin(_t *testing.T) {
 
 	_t.Run("minimum login", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.LoginMinLengthError.Error())
-		data := map[string]interface{}{"login": tests.BuildString(errors.LoginMinLengthLimit - 1),
-			"password": tests.BuildString(errors.PasswordMinLengthLimit)}
+		data := map[string]interface{}{"login": tests.BuildString(utils.LoginMinLengthLimit - 1),
+			"password": tests.BuildString(utils.PasswordMinLengthLimit)}
 		body, resp := post(data, t)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
@@ -89,8 +90,8 @@ func TestValidLogin(_t *testing.T) {
 
 	_t.Run("maximum login", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.LoginMaxLengthError.Error())
-		data := map[string]interface{}{"login": tests.BuildString(errors.LoginMaxLengthLimit + 1),
-			"password": tests.BuildString(errors.PasswordMinLengthLimit)}
+		data := map[string]interface{}{"login": tests.BuildString(utils.LoginMaxLengthLimit + 1),
+			"password": tests.BuildString(utils.PasswordMinLengthLimit)}
 		body, resp := post(data, t)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
@@ -98,8 +99,8 @@ func TestValidLogin(_t *testing.T) {
 
 	_t.Run("non-ascii login", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.LoginLocaleError.Error())
-		data := map[string]interface{}{"login": tests.BuildString(errors.LoginMinLengthLimit) + "тест",
-			"password": tests.BuildString(errors.PasswordMinLengthLimit)}
+		data := map[string]interface{}{"login": tests.BuildString(utils.LoginMinLengthLimit) + "тест",
+			"password": tests.BuildString(utils.PasswordMinLengthLimit)}
 		body, resp := post(data, t)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
@@ -114,7 +115,7 @@ func TestUserAlreadyExists(t *testing.T) {
 	url := fmt.Sprint(tests.BaseUrl, path)
 
 	body, resp := tests.Post(url,
-		map[string]interface{}{"login": tests.BuildUsername(testUserId), "password": tests.BuildString(errors.PasswordMinLengthLimit)}, t)
+		map[string]interface{}{"login": tests.BuildUsername(testUserId), "password": tests.BuildString(utils.PasswordMinLengthLimit)}, t)
 	tests.CheckResp(resp, body, 422, rightBody, t)
 	
 	tests.DeleteUser(testUserId, t)
@@ -128,7 +129,7 @@ func TestRegister(t *testing.T) {
 	rightBody := ""
 
 	body, resp := tests.Post(url,
-		map[string]interface{}{"login": username, "password": tests.BuildString(errors.PasswordMinLengthLimit)}, t)
+		map[string]interface{}{"login": username, "password": tests.BuildString(utils.PasswordMinLengthLimit)}, t)
 	tests.CheckResp(resp, body, 201, rightBody, t)
 
 	u := database.User{

@@ -39,7 +39,7 @@ func (t *Token) GetUser() *User {
 	defer DB.Close()
 	var user User
 
-	if tx := conn.First(&user).Where("id = ?", t.UserRefer); tx.Error != nil {
+	if tx := conn.Where("id = ?", t.UserRefer).First(&user); tx.Error != nil {
 		log.Error(tx.Error)
 		return nil
 	}
