@@ -180,3 +180,41 @@ func TestUpdateCollection(_t *testing.T) {
 
 	tests.DeleteUser(testUserId, _t)
 }
+
+func TestDeleteCollection(_t *testing.T) {
+	_path := "collection/"
+	testUserId := 12
+	tests.RegisterUser(testUserId)
+	token := tests.GetToken(testUserId, _t)
+	user := *tests.GetUser(testUserId)
+
+	_t.Run("collection does not exist", func(t *testing.T) {
+		path := fmt.Sprint(_path, "not_exist")
+		url := fmt.Sprint(tests.BaseUrl, path)
+		body, resp := tests.Delete(url, map[string]interface{}{"token": token}, t)
+		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.CollectionNotExist.Error())
+
+		tests.CheckResp(resp, body, 404, rightBody, t)	
+	})
+	
+	_t.Run("delete collection", func(t *testing.T) {
+		testCollectionId := 7
+		tests.CreateCollection(testCollectionId, user)
+		title := tests.BuildTitle(testCollectionId)
+		path := fmt.Sprint(_path, title)
+		url := fmt.Sprint(tests.BaseUrl, path)
+		body, resp := tests.Delete(url, map[string]interface{}{"token": token}, t)
+		rightBody := ""
+
+		tests.CheckResp(resp, body, 200, rightBody, t)
+		
+		c := database.Collection{Title: title, User: user}
+		
+		if c.IsExist() {
+			tests.DeleteCollection(testCollectionId, user, t)
+			t.Error("Collection haven't deleted")
+		}
+	})
+	
+	tests.DeleteUser(testUserId, _t)
+}

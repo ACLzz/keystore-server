@@ -5,7 +5,6 @@ import (
 	"github.com/ACLzz/keystore-server/src/errors"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 	"net/http"
 )
 
@@ -87,21 +86,15 @@ func UpdateCollection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	conn := database.GetConn()
-	DB, _ := conn.DB()
-	defer DB.Close()
-	var coll database.Collection
-	if tx := conn.Where("title = ? and user_refer = ?", title, user.Id).First(&coll); tx.Error != nil {
-		if tx.Error == gorm.ErrRecordNotFound {
-			log.Errorf("collections with %s title for user %d not found", title, user.Id)
-			SendError(w, errors.CollectionNotExist, 404)
-		} else {
-			log.Error(tx.Error)
-			SendError(w, errors.InternalError, 500)
-		}
+	coll := database.Collection{
+		Title: title,
+		User: *user,
+	}
+	if !coll.IsExist() {
+		log.Errorf("collections with %s title for user %d not found", title, user.Id)
+		SendError(w, errors.CollectionNotExist, 404)
 		return
 	}
-	coll.User = *user
 	
 	if _title, ok := body["title"]; ok {
 		if !CheckCollectionTitle(_title.(string), w) {
@@ -125,6 +118,35 @@ func UpdateCollection(w http.ResponseWriter, r *http.Request) {
 
 func DeleteCollection(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	collection := vars["collection"]
-	log.Info("Delete ", collection, " collection")
+	title := vars["collection"]
+	
+	body := ConvBody(w, r)
+	if body == nil {
+		return
+	}
+	token := VerifyAuth(w, body)
+	if token == nil {
+		return
+	}
+	user := token.GetUser()
+	if !CheckCollectionTitle(title, w) {
+		return
+	}
+	coll := database.Collection{
+		Title: title,
+		User: *user,
+	}
+
+	if !coll.IsExist() {
+		log.Errorf("collections with %s title for user %d not found", title, user.Id)
+		SendError(w, errors.CollectionNotExist, 404)
+		return
+	}
+	
+	log.Info("Delete ", title, " collection")
+	if !coll.Delete() {
+		SendError(w, errors.InternalError, 500)
+	} else {
+		SendResp(w, nil, 200)
+	}
 }

@@ -34,6 +34,7 @@ func (u *User) IsExist() bool {
 
 	exists := User{}
 	conn.Where("username = ?", u.Username).First(&exists)
+	u.Id = exists.Id
 
 	if exists.Username != u.Username {
 		return false

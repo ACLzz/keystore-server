@@ -23,6 +23,7 @@ func (c *Collection) IsExist() bool {
 	if tx := conn.Where("title = ? AND user_refer = ?", c.Title, c.User.Id).First(&exists); tx.Error == gorm.ErrRecordNotFound {
 		return false
 	}
+	c.Id = exists.Id
 	return true
 }
 
@@ -33,6 +34,24 @@ func (c *Collection) Update() bool {
 	defer conn.Commit()
 
 	if tx := conn.Unscoped().Save(c); tx.Error != nil {
+		log.Error(tx.Error)
+		return false
+	}
+	return true
+}
+
+func (c *Collection) Delete() bool {
+	conn := GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
+	defer conn.Commit()
+
+	if tx := conn.Unscoped().Where("collection_refer = ?", c.Id).Delete(Pass2Coll{}); tx.Error != nil {
+		log.Error(tx.Error)
+		return false
+	}
+	
+	if tx := conn.Unscoped().Where("id = ?", c.Id).Delete(Collection{}); tx.Error != nil {
 		log.Error(tx.Error)
 		return false
 	}
