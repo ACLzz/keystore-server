@@ -6,7 +6,7 @@ import (
 )
 
 var ModelsList = []Model{
-	&User{}, &Password{}, &Collection{}, &Pass2Coll{}, &Token{},
+	&User{}, &Password{}, &Collection{}, &Token{},
 }
 
 type Model interface {}
@@ -24,8 +24,11 @@ type Password struct {
 	Id					int			`gorm:"primaryKey"`
 	Title				string
 	Email				string
-	Username			string
+	Login			string
 	Password			string
+
+	CollectionRefer		string
+	Collection			Collection	`gorm:"foreignKey:CollectionRefer;constraint:OnDelete:CASCADE;"`
 }
 
 
@@ -35,16 +38,6 @@ type Collection struct {
 	Title			string
 	UserRefer		string
 	User			User			`gorm:"foreignKey:UserRefer;constraint:OnDelete:CASCADE;"`
-}
-
-
-type Pass2Coll struct {
-	gorm.Model
-	Id					int			`gorm:"primaryKey"`
-	PasswordRefer		string
-	Password			Password	`gorm:"foreignKey:PasswordRefer;constraint:OnDelete:CASCADE;"`
-	CollectionRefer		string
-	Collection			Collection	`gorm:"foreignKey:CollectionRefer;constraint:OnDelete:CASCADE;"`
 }
 
 

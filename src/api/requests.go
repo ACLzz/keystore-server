@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/ACLzz/keystore-server/src/database"
@@ -54,10 +55,9 @@ func SendArray(w  http.ResponseWriter, resp *[]interface{}, statusCode int) {
 
 
 func ConvBody(w http.ResponseWriter, r *http.Request) map[string]interface{} {
-	defer r.Body.Close()
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Errorf("Error in getting body, Register: %v\n", err)
+		log.Errorf("Error in getting body %v\n", err)
 		SendError(w, errors.InvalidBodyError, 400)
 		return nil
 	}
@@ -74,6 +74,8 @@ func ConvBody(w http.ResponseWriter, r *http.Request) map[string]interface{} {
 		SendError(w, errors.InvalidBodyError, 400)
 		return nil
 	}
+
+	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 	return jbody
 }
 
@@ -115,6 +117,22 @@ func VerifyAuth(w http.ResponseWriter, body map[string]interface{}) *database.To
 		return nil
 	}
 
+	return &dbToken
+}
+
+func GetTokenObj(token string) *database.Token {
+	conn := database.GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
+
+	dbToken := database.Token{}
+	tx := conn.Where("token = ?", token).First(&dbToken)
+	if tx.Error == gorm.ErrRecordNotFound {
+		log.Warn("Can't find token ", token)
+		return nil
+	}
+
+	dbToken.User = *dbToken.GetUser()
 	return &dbToken
 }
 

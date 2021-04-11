@@ -13,7 +13,8 @@ func CreateCollection(w http.ResponseWriter, r *http.Request) {
 	if body == nil {
 		return
 	}
-	token := VerifyAuth(w, body)
+	token := GetTokenObj(body["token"].(string))
+	//token := VerifyAuth(w, body)
 	if token == nil {
 		return
 	}

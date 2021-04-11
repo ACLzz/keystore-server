@@ -57,12 +57,15 @@ func CollectionRouter(parent *mux.Router) *mux.Router {
 func PasswordRouter(parent *mux.Router) *mux.Router {
 	log.Info("Initializing passwords router")
 	
-	return buildRouter(parent, "/pswd/", routesMap{
+	r := buildRouter(parent, "/{collection}/", routesMap{
 		{"/", CreatePassword, []string{"POST"}},
 		{"/{pid}", ReadPassword, []string{"GET"}},
 		{"/{pid}", UpdatePassword, []string{"PUT"}},
 		{"/{pid}", DeletePassword, []string{"DELETE"}},
 	})
+	r.Use(PasswordMiddleware)
+	
+	return r
 }
 
 func DevRouter(parent *mux.Router) *mux.Router {
@@ -79,6 +82,7 @@ func buildRouter(parent *mux.Router, path string, routes routesMap) *mux.Router 
 	routes: map of sub-route
 	 */
 	r := parent.PathPrefix(path).Subrouter()
+	r.StrictSlash(true)
 	for _, route := range routes {
 		for _, method := range route.Methods {
 			r.HandleFunc(route.Route, route.Handler).Methods(method)

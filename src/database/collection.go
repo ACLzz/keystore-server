@@ -45,11 +45,6 @@ func (c *Collection) Delete() bool {
 	DB, _ := conn.DB()
 	defer DB.Close()
 	defer conn.Commit()
-
-	if tx := conn.Unscoped().Where("collection_refer = ?", c.Id).Delete(Pass2Coll{}); tx.Error != nil {
-		log.Error(tx.Error)
-		return false
-	}
 	
 	if tx := conn.Unscoped().Where("id = ?", c.Id).Delete(Collection{}); tx.Error != nil {
 		log.Error(tx.Error)
