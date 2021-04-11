@@ -15,7 +15,10 @@ func CreatePassword(w http.ResponseWriter, r *http.Request) {
 	if body == nil {
 		return
 	}
-	token := VerifyAuth(w, body)
+	if !VerifyAuth(w, body) {
+		return
+	}
+	token := GetTokenObj(body["token"].(string))
 	if token == nil {
 		return
 	}

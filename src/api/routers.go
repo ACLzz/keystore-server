@@ -49,6 +49,7 @@ func CollectionRouter(parent *mux.Router) *mux.Router {
 		{"/{collection}", UpdateCollection, []string{"PUT"}},
 		{"/{collection}", DeleteCollection, []string{"DELETE"}},
 	})
+	r.Use(CollectionMiddleWare)
 	
 	PasswordRouter(r)
 	return r

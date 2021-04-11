@@ -79,11 +79,11 @@ func ConvBody(w http.ResponseWriter, r *http.Request) map[string]interface{} {
 	return jbody
 }
 
-func VerifyAuth(w http.ResponseWriter, body map[string]interface{}) *database.Token {
+func VerifyAuth(w http.ResponseWriter, body map[string]interface{}) bool {
 	token, ok := body["token"]
 	if !ok || token == "" {
 		SendError(w, errors.NoToken, 400)
-		return nil
+		return false
 	}
 
 	// Check token for non-digit and non-letters symbols
@@ -93,7 +93,7 @@ func VerifyAuth(w http.ResponseWriter, body map[string]interface{}) *database.To
 		}
 		SendError(w, errors.TokenDeniedSymbolsError, 422)
 		log.Warn("Strange token was sent: ", token.(string))
-		return nil
+		return false
 	}
 
 	conn := database.GetConn()
@@ -105,19 +105,19 @@ func VerifyAuth(w http.ResponseWriter, body map[string]interface{}) *database.To
 	if tx.Error == gorm.ErrRecordNotFound {
 		SendError(w, errors.InvalidToken, 422)
 		log.Warn("Invalid token request with token ", token)
-		return nil
+		return false
 	} else if tx.Error != nil {
 		SendError(w, errors.InternalError, 500)
 		log.Errorf("In ValidateAuth: %v", tx.Error)
-		return nil
+		return false
 	}
 
 	if dbToken.ExpireDate.Before(time.Now()) {
 		SendError(w, errors.ExpiredToken, 403)
-		return nil
+		return false
 	}
 
-	return &dbToken
+	return true
 }
 
 func GetTokenObj(token string) *database.Token {

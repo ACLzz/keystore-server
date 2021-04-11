@@ -15,7 +15,7 @@ func PasswordMiddleware(h http.Handler) http.Handler {
 			return
 		}
 
-		if VerifyAuth(w, body) == nil {
+		if !VerifyAuth(w, body) {
 			return
 		}
 		token := GetTokenObj(body["token"].(string))
@@ -34,7 +34,7 @@ func PasswordMiddleware(h http.Handler) http.Handler {
 
 func CollectionMiddleWare(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if VerifyAuth(w, ConvBody(w, r)) == nil {
+		if !VerifyAuth(w, ConvBody(w, r)) {
 			return
 		}
 		h.ServeHTTP(w, r)

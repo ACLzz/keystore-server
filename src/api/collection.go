@@ -14,7 +14,6 @@ func CreateCollection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	token := GetTokenObj(body["token"].(string))
-	//token := VerifyAuth(w, body)
 	if token == nil {
 		return
 	}
@@ -50,7 +49,7 @@ func FetchCollections(w http.ResponseWriter, r *http.Request) {
 	if body == nil {
 		return
 	}
-	token := VerifyAuth(w, body)
+	token := GetTokenObj(body["token"].(string))
 	if token == nil {
 		return
 	}
@@ -78,7 +77,7 @@ func UpdateCollection(w http.ResponseWriter, r *http.Request) {
 	if body == nil {
 		return
 	}
-	token := VerifyAuth(w, body)
+	token := GetTokenObj(body["token"].(string))
 	if token == nil {
 		return
 	}
@@ -125,7 +124,7 @@ func DeleteCollection(w http.ResponseWriter, r *http.Request) {
 	if body == nil {
 		return
 	}
-	token := VerifyAuth(w, body)
+	token := GetTokenObj(body["token"].(string))
 	if token == nil {
 		return
 	}
