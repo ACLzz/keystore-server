@@ -101,8 +101,48 @@ func ReadPassword(w http.ResponseWriter, r *http.Request) {
 
 func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	pid := vars["pid"]
+	_pid := vars["pid"]
+	body := ConvBody(w, r)
+	if body == nil {
+		return
+	}
+	user := GetUser(body["token"].(string))
+	if user == nil {
+		return
+	}
+	pid, _ := strconv.Atoi(_pid)
+
 	log.Info("Updating ", pid, " password")
+
+	password, err := GetPassword(vars["collection"], user, pid)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			SendError(w, errors.PasswordNotExist, 404)
+		} else {
+			log.Error(err)
+			SendError(w, errors.InternalError, 500)
+		}
+		return
+	}
+	
+	if title, ok := body["title"].(string); ok {
+		password.Title = title
+	}
+	if email, ok := body["email"].(string); ok {
+		password.Email = email
+	}
+	if login, ok := body["login"].(string); ok {
+		password.Login = login
+	}
+	if pswd, ok := body["password"].(string); ok {
+		password.Password = pswd
+	}
+
+	if !password.Update() {
+		SendError(w, errors.InternalError, 500)
+		return
+	}
+	SendResp(w, nil, 200)
 }
 
 func DeletePassword(w http.ResponseWriter, r *http.Request) {
@@ -116,7 +156,7 @@ func DeletePassword(w http.ResponseWriter, r *http.Request) {
 	if user == nil {
 		return
 	}
-	pid, err := strconv.Atoi(_pid)
+	pid, _ := strconv.Atoi(_pid)
 
 	log.Info("Delete ", pid, " password")
 

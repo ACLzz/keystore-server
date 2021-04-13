@@ -35,3 +35,16 @@ func (p *Password) Delete() bool {
 	}
 	return true
 }
+
+func (p *Password) Update() bool {
+	conn := GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
+	defer conn.Commit()
+
+	if tx := conn.Unscoped().Save(p); tx.Error != nil {
+		log.Error(tx.Error)
+		return false
+	}
+	return true
+}

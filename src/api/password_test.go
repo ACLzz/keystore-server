@@ -177,3 +177,72 @@ func TestDeletePassword(_t *testing.T) {
 	tests.DeleteCollection(testCollectionId, *user, _t)
 	tests.DeleteUser(testUserId, _t)
 }
+
+func TestUpdatePassword(_t *testing.T) {
+	testUserId := 16
+	tests.RegisterUser(testUserId)
+	token := tests.GetToken(testUserId, _t)
+	user := tests.GetUser(testUserId)
+	testCollectionId := 11
+	tests.CreateCollection(testCollectionId, *user)
+	collection := GetCollection(tests.BuildTitle(testCollectionId), user)
+	_path := fmt.Sprint("collection/", tests.BuildTitle(testCollectionId), "/")
+
+	_t.Run("update partially", func(t *testing.T) {
+		tests.CreatePassword(1, *collection)
+		passwordId := tests.GetPassword(collection, 1, t).Id
+		path := fmt.Sprint(_path, passwordId)
+		url := fmt.Sprint(tests.BaseUrl, path)
+		rightBody := ""
+		newTitle := "password's new title"
+		newLogin := "new login"
+
+		body, resp := tests.Put(url, map[string]interface{}{"title": newTitle, "login": newLogin, "token": token}, t)
+		tests.CheckResp(resp, body, 200, rightBody, t)
+
+		conn := database.GetConn()
+		DB, _ := conn.DB()
+		defer DB.Close()
+		
+		var password database.Password
+		if tx := conn.Unscoped().Where("title = ? and login = ? and collection_refer = ?", newTitle, newLogin, collection.Id).
+			First(&password); tx.Error != nil {
+			t.Error(tx.Error)
+		}
+		
+		if password.Password != tests.BasePassword.Password {
+			t.Error("password row was overwritten with blank password field")
+		}
+	})
+
+	_t.Run("update full", func(t *testing.T) {
+		tests.CreatePassword(2, *collection)
+		passwordId := tests.GetPassword(collection, 2, t).Id
+		path := fmt.Sprint(_path, passwordId)
+		url := fmt.Sprint(tests.BaseUrl, path)
+		rightBody := ""
+		
+		newTitle := "password's new title2"
+		newLogin := "new login2"
+		newPassword := "newPassword"
+		newEmail := "newEmail"
+
+		body, resp := tests.Put(url, map[string]interface{}{"title": newTitle, "login": newLogin,
+			"password": newPassword, "email": newEmail, "token": token}, t)
+		tests.CheckResp(resp, body, 200, rightBody, t)
+
+		conn := database.GetConn()
+		DB, _ := conn.DB()
+		defer DB.Close()
+
+		var password database.Password
+		if tx := conn.Unscoped().Where("title = ? and login = ? and password = ? and email = ? and collection_refer = ?",
+			newTitle, newLogin, newPassword, newEmail, collection.Id).
+			First(&password); tx.Error != nil {
+			t.Error(tx.Error)
+		}
+	})
+
+	tests.DeleteCollection(testCollectionId, *user, _t)
+	tests.DeleteUser(testUserId, _t)
+}
