@@ -5,6 +5,7 @@ import (
 	"github.com/ACLzz/keystore-server/src/errors"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 	"net/http"
 )
 
@@ -13,9 +14,6 @@ func CreatePassword(w http.ResponseWriter, r *http.Request) {
 	collection := vars["collection"]
 	body := ConvBody(w, r)
 	if body == nil {
-		return
-	}
-	if !VerifyAuth(w, body) {
 		return
 	}
 	user := GetUser(body["token"].(string))
@@ -68,7 +66,36 @@ func CreatePassword(w http.ResponseWriter, r *http.Request) {
 func ReadPassword(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	pid := vars["pid"]
-	log.Info("Getting ", pid, " password")
+	body := ConvBody(w, r)
+	if body == nil {
+		return
+	}
+	user := GetUser(body["token"].(string))
+	if user == nil {
+		return
+	}
+	collection := GetCollection(vars["collection"], user)
+
+	log.Info("Getting ", pid, " password from ", collection.Title, " collection for ", user.Id, " user")
+
+	conn := database.GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
+	var password database.Password
+
+	if tx := conn.Where("id = ? and collection_refer = ?", pid, collection.Id).First(&password); tx.Error != nil {
+		if tx.Error == gorm.ErrRecordNotFound {
+			SendError(w, errors.PasswordNotExist, 404)
+		} else {
+			log.Error(tx.Error)
+			SendError(w, errors.InternalError, 500)
+		}
+		return
+	}
+
+	SendResp(w, &map[string]interface{}{
+		"title": password.Title, "login": password.Login, "password": password.Password, "email": password.Email,
+	}, 200)
 }
 
 func UpdatePassword(w http.ResponseWriter, r *http.Request) {

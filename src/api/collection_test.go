@@ -243,9 +243,9 @@ func TestListCollection(_t *testing.T) {
 		title := tests.BuildTitle(testCollectionId)
 		url := fmt.Sprint(_path, title)
 		collection := GetCollection(title, &user)
-		tests.CreatePassword(1, collection)
-		tests.CreatePassword(2, collection)
-		tests.CreatePassword(3, collection)
+		tests.CreatePassword(1, *collection)
+		tests.CreatePassword(2, *collection)
+		tests.CreatePassword(3, *collection)
 
 		body, resp := tests.Get(url, map[string]interface{}{"token": token}, t)
 		rightBody := fmt.Sprintf("[%s,%s,%s]",
