@@ -5,6 +5,7 @@ import (
 	"github.com/ACLzz/keystore-server/src/errors"
 	"github.com/gorilla/mux"
 	"net/http"
+	"strings"
 )
 
 
@@ -38,5 +39,12 @@ func CollectionMiddleWare(h http.Handler) http.Handler {
 			return
 		}
 		h.ServeHTTP(w, r)
+	})
+}
+
+func TrailingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.URL.Path = strings.TrimSuffix(r.URL.Path, "/")
+		next.ServeHTTP(w, r)
 	})
 }

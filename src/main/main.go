@@ -30,10 +30,10 @@ func main() {
 func startServer() *http.Server {
 	log.Info(fmt.Sprintf("Initializing http server on %s:%d", utils.Config.Addr, utils.Config.Port))
 	s := http.Server{}
-	
+
 	mainR := api.MainRouter()
 	s.Addr = fmt.Sprintf("%s:%d", utils.Config.Addr, utils.Config.Port)
-	s.Handler = mainR
+	s.Handler = api.TrailingMiddleware(mainR)
 	go func() {
 		log.Info("Starting keystore server...")
 		if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {

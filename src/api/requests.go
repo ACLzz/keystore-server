@@ -124,15 +124,26 @@ func GetUser(token string) *database.User {
 	conn := database.GetConn()
 	DB, _ := conn.DB()
 	defer DB.Close()
-
-	dbToken := database.Token{}
-	tx := conn.Where("token = ?", token).First(&dbToken)
-	if tx.Error == gorm.ErrRecordNotFound {
+	
+	var dbToken database.Token
+	if tx := conn.Where("token = ?", token).First(&dbToken); tx.Error == gorm.ErrRecordNotFound {
 		log.Warn("Can't find token ", token)
 		return nil
 	}
 
 	return dbToken.GetUser()
+}
+
+func GetCollection(title string, user *database.User) *database.Collection {
+	conn := database.GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
+	
+	var collection database.Collection
+	if tx := conn.Where("title = ? and user_refer = ?", title, user.Id).First(&collection); tx.Error == gorm.ErrRecordNotFound {
+		return nil
+	}
+	return &collection
 }
 
 func CheckAuthFields(body map[string]interface{}, w http.ResponseWriter) bool {

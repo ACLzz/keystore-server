@@ -59,10 +59,34 @@ func FetchCollections(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListCollection(w http.ResponseWriter, r *http.Request) {
-	// TODO
 	vars := mux.Vars(r)
 	collection := vars["collection"]
-	log.Info("Listing ", collection, " collection")
+	body := ConvBody(w, r)
+	if body == nil {
+		return
+	}
+	user := GetUser(body["token"].(string))
+	if user == nil {
+		return
+	}
+	coll := GetCollection(collection, user)
+	if coll == nil {
+		SendError(w, errors.CollectionNotExist, 404)
+		return
+	}
+
+	log.Info("Listing ", collection, " collection for ", user.Id, " user")
+	passwords := make([]interface{}, 0)
+	_passwords := coll.FetchPasswords()
+	if _passwords == nil {
+		SendError(w, errors.InternalError, 500)
+		return
+	}
+	for _, pass := range _passwords {
+		passwords = append(passwords, map[string]interface{}{"id": pass.Id, "title": pass.Title})
+	}
+	
+	SendArray(w, &passwords, 200)
 }
 
 func UpdateCollection(w http.ResponseWriter, r *http.Request) {

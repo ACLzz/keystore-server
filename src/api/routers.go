@@ -31,20 +31,20 @@ func MainRouter() *mux.Router {
 
 func AuthRouter(parent *mux.Router) *mux.Router {
 	log.Info("Initializing auth router")
-	return buildRouter(parent, "/auth/", routesMap{
+	return buildRouter(parent, "/auth", routesMap{
 		{"/login", Login, []string{"POST"}},
-		{"/", ReadUser, []string{"GET"}},
-		{"/", Register, []string{"POST"}},
-		{"/", UpdateUser, []string{"PUT"}},
-		{"/", DeleteUser, []string{"DELETE"}},
+		{"", ReadUser, []string{"GET"}},
+		{"", Register, []string{"POST"}},
+		{"", UpdateUser, []string{"PUT"}},
+		{"", DeleteUser, []string{"DELETE"}},
 	})
 }
 
 func CollectionRouter(parent *mux.Router) *mux.Router {
 	log.Info("Initializing collections router")
-	r := buildRouter(parent, "/collection/", routesMap{
-		{"/", FetchCollections, []string{"GET"}},
-		{"/", CreateCollection, []string{"POST"}},
+	r := buildRouter(parent, "/collection", routesMap{
+		{"", FetchCollections, []string{"GET"}},
+		{"", CreateCollection, []string{"POST"}},
 		{"/{collection}", ListCollection, []string{"GET"}},
 		{"/{collection}", UpdateCollection, []string{"PUT"}},
 		{"/{collection}", DeleteCollection, []string{"DELETE"}},
@@ -58,8 +58,8 @@ func CollectionRouter(parent *mux.Router) *mux.Router {
 func PasswordRouter(parent *mux.Router) *mux.Router {
 	log.Info("Initializing passwords router")
 	
-	r := buildRouter(parent, "/{collection}/", routesMap{
-		{"/", CreatePassword, []string{"POST"}},
+	r := buildRouter(parent, "/{collection}", routesMap{
+		{"", CreatePassword, []string{"POST"}},
 		{"/{pid}", ReadPassword, []string{"GET"}},
 		{"/{pid}", UpdatePassword, []string{"PUT"}},
 		{"/{pid}", DeletePassword, []string{"DELETE"}},
@@ -71,7 +71,7 @@ func PasswordRouter(parent *mux.Router) *mux.Router {
 
 func DevRouter(parent *mux.Router) *mux.Router {
 	log.Info("Initializing dev router")
-	return buildRouter(parent, "/dev/", routesMap{
+	return buildRouter(parent, "/dev", routesMap{
 		{"/shutdown-server", ShutdownServer, []string{"GET"}},
 	})
 }
@@ -83,7 +83,6 @@ func buildRouter(parent *mux.Router, path string, routes routesMap) *mux.Router 
 	routes: map of sub-route
 	 */
 	r := parent.PathPrefix(path).Subrouter()
-	r.StrictSlash(false)
 	for _, route := range routes {
 		for _, method := range route.Methods {
 			r.HandleFunc(route.Route, route.Handler).Methods(method)

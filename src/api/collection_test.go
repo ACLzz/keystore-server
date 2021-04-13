@@ -218,3 +218,44 @@ func TestDeleteCollection(_t *testing.T) {
 	
 	tests.DeleteUser(testUserId, _t)
 }
+
+func TestListCollection(_t *testing.T) {
+	testUserId := 15
+	tests.RegisterUser(testUserId)
+	user := *tests.GetUser(testUserId)
+	token := tests.GetToken(testUserId, _t)
+	_path := fmt.Sprint(tests.BaseUrl, "collection/")
+	
+	_t.Run("empty collection list", func(t *testing.T) {
+		testCollectionId := 8
+		tests.CreateCollection(testCollectionId, user)
+		url := fmt.Sprint(_path, tests.BuildTitle(testCollectionId))
+		body, resp := tests.Get(url, map[string]interface{}{"token": token}, t)
+		rightBody := "[]"
+
+		tests.CheckResp(resp, body, 200, rightBody, t)
+		tests.DeleteCollection(testCollectionId, user, t)
+	})
+	
+	_t.Run("list collection", func(t *testing.T) {
+		testCollectionId := 9
+		tests.CreateCollection(testCollectionId, user)
+		title := tests.BuildTitle(testCollectionId)
+		url := fmt.Sprint(_path, title)
+		collection := GetCollection(title, &user)
+		tests.CreatePassword(1, collection)
+		tests.CreatePassword(2, collection)
+		tests.CreatePassword(3, collection)
+
+		body, resp := tests.Get(url, map[string]interface{}{"token": token}, t)
+		rightBody := fmt.Sprintf("[%s,%s,%s]",
+			tests.BuildPasswordEntityString(collection, 1, t),
+			tests.BuildPasswordEntityString(collection, 2, t),
+			tests.BuildPasswordEntityString(collection, 3, t))
+
+		tests.CheckResp(resp, body, 200, rightBody, t)
+		tests.DeleteCollection(testCollectionId, user, t)
+	})
+
+	tests.DeleteUser(testUserId, _t)
+}
