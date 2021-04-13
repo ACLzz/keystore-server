@@ -83,7 +83,7 @@ func buildRouter(parent *mux.Router, path string, routes routesMap) *mux.Router 
 	routes: map of sub-route
 	 */
 	r := parent.PathPrefix(path).Subrouter()
-	r.StrictSlash(true)
+	r.StrictSlash(false)
 	for _, route := range routes {
 		for _, method := range route.Methods {
 			r.HandleFunc(route.Route, route.Handler).Methods(method)
