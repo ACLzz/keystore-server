@@ -146,6 +146,19 @@ func GetCollection(title string, user *database.User) *database.Collection {
 	return &collection
 }
 
+func GetPassword(collection string, user *database.User, pid int) (*database.Password, error) {
+	coll := GetCollection(collection, user)
+	conn := database.GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
+	var password database.Password
+
+	if tx := conn.Where("id = ? and collection_refer = ?", pid, coll.Id).First(&password); tx.Error != nil {
+		return nil, tx.Error
+	}
+	return &password, nil
+}
+
 func CheckAuthFields(body map[string]interface{}, w http.ResponseWriter) bool {
 	if _, ok := body["login"]; !ok {
 		SendError(w, errors.NoLoginError, 400)

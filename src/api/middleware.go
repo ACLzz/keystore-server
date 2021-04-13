@@ -5,6 +5,7 @@ import (
 	"github.com/ACLzz/keystore-server/src/errors"
 	"github.com/gorilla/mux"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -27,6 +28,15 @@ func PasswordMiddleware(h http.Handler) http.Handler {
 		if !coll.IsExist() {
 			SendError(w, errors.CollectionNotExist, 404)
 			return
+		}
+		
+		pid, ok := vars["pid"]
+		if ok {
+			_, err := strconv.Atoi(pid)
+			if err != nil {
+				SendError(w, errors.InvalidPasswordId, 422)
+				return
+			}
 		}
 		
 		h.ServeHTTP(w, r)

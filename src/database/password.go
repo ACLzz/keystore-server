@@ -22,3 +22,16 @@ func (p *Password) Add(collection string, userId int) bool {
 	}
 	return true
 }
+
+func (p *Password) Delete() bool {
+	conn := GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
+	defer conn.Commit()
+
+	if tx := conn.Unscoped().Where("id = ?", p.Id).Delete(Password{}); tx.Error != nil {
+		log.Error(tx.Error)
+		return false
+	}
+	return true
+}

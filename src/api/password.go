@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"net/http"
+	"strconv"
 )
 
 func CreatePassword(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +66,7 @@ func CreatePassword(w http.ResponseWriter, r *http.Request) {
 
 func ReadPassword(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	pid := vars["pid"]
+	_pid := vars["pid"]
 	body := ConvBody(w, r)
 	if body == nil {
 		return
@@ -74,20 +75,20 @@ func ReadPassword(w http.ResponseWriter, r *http.Request) {
 	if user == nil {
 		return
 	}
-	collection := GetCollection(vars["collection"], user)
+	pid, err := strconv.Atoi(_pid)
+	if err != nil {
+		SendError(w, errors.InvalidPasswordId, 400)
+		return
+	}
 
-	log.Info("Getting ", pid, " password from ", collection.Title, " collection for ", user.Id, " user")
+	log.Info("Getting ", pid, " password from ", vars["collection"], " collection for ", user.Id, " user")
 
-	conn := database.GetConn()
-	DB, _ := conn.DB()
-	defer DB.Close()
-	var password database.Password
-
-	if tx := conn.Where("id = ? and collection_refer = ?", pid, collection.Id).First(&password); tx.Error != nil {
-		if tx.Error == gorm.ErrRecordNotFound {
+	password, err := GetPassword(vars["collection"], user, pid)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
 			SendError(w, errors.PasswordNotExist, 404)
 		} else {
-			log.Error(tx.Error)
+			log.Error(err)
 			SendError(w, errors.InternalError, 500)
 		}
 		return
@@ -106,6 +107,33 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 
 func DeletePassword(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	pid := vars["pid"]
+	_pid := vars["pid"]
+	body := ConvBody(w, r)
+	if body == nil {
+		return
+	}
+	user := GetUser(body["token"].(string))
+	if user == nil {
+		return
+	}
+	pid, err := strconv.Atoi(_pid)
+
 	log.Info("Delete ", pid, " password")
+
+	password, err := GetPassword(vars["collection"], user, pid)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			SendError(w, errors.PasswordNotExist, 404)
+		} else {
+			log.Error(err)
+			SendError(w, errors.InternalError, 500)
+		}
+		return
+	}
+
+	if !password.Delete() {
+		SendError(w, errors.InternalError, 500)
+		return
+	}
+	SendResp(w, nil, 200)
 }
