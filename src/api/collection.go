@@ -13,11 +13,7 @@ func CreateCollection(w http.ResponseWriter, r *http.Request) {
 	if body == nil {
 		return
 	}
-	token := GetTokenObj(body["token"].(string))
-	if token == nil {
-		return
-	}
-	user := token.GetUser()
+	user := GetUser(body["token"].(string))
 	_title, ok := body["title"]
 	if !ok {
 		SendError(w, errors.NoTitleError, 400)
@@ -49,11 +45,11 @@ func FetchCollections(w http.ResponseWriter, r *http.Request) {
 	if body == nil {
 		return
 	}
-	token := GetTokenObj(body["token"].(string))
-	if token == nil {
+	user := GetUser(body["token"].(string))
+	if user == nil {
 		return
 	}
-	collections := token.FetchCollections()
+	collections := user.FetchCollections()
 	var collTitles []interface{}
 	for _, coll := range collections {
 		collTitles = append(collTitles, coll.Title)
@@ -77,11 +73,7 @@ func UpdateCollection(w http.ResponseWriter, r *http.Request) {
 	if body == nil {
 		return
 	}
-	token := GetTokenObj(body["token"].(string))
-	if token == nil {
-		return
-	}
-	user := token.GetUser()
+	user := GetUser(body["token"].(string))
 	if !CheckCollectionTitle(title, w) {
 		return
 	}
@@ -124,11 +116,7 @@ func DeleteCollection(w http.ResponseWriter, r *http.Request) {
 	if body == nil {
 		return
 	}
-	token := GetTokenObj(body["token"].(string))
-	if token == nil {
-		return
-	}
-	user := token.GetUser()
+	user := GetUser(body["token"].(string))
 	if !CheckCollectionTitle(title, w) {
 		return
 	}

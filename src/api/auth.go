@@ -63,12 +63,8 @@ func ReadUser(w http.ResponseWriter, r *http.Request) {
 	if !VerifyAuth(w, body) {
 		return
 	}
-	token := GetTokenObj(body["token"].(string))
-	if token == nil {
-		return
-	}
 
-	user := token.GetUser()
+	user := GetUser(body["token"].(string))
 	if user == nil {
 		SendError(w, errors.UserNotExists, 404)
 		return
@@ -89,16 +85,12 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if !VerifyAuth(w, body) {
 		return
 	}
-	token := GetTokenObj(body["token"].(string))
-	if token == nil {
-		return
-	}
 
 	if isBodyValid := CheckAuthFieldsLimits(body, w); !isBodyValid {
 		return
 	}
 
-	user := token.GetUser()
+	user := GetUser(body["token"].(string))
 	if user == nil {
 		SendError(w, errors.UserNotExists, 404)
 		return
@@ -128,11 +120,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	if !VerifyAuth(w, body) {
 		return
 	}
-	token := GetTokenObj(body["token"].(string))
-	if token == nil {
-		return
-	}
-	user := token.GetUser()
+	user := GetUser(body["token"].(string))
 	if user == nil {
 		SendError(w, errors.UserNotExists, 404)
 		return

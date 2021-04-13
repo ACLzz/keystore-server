@@ -52,3 +52,16 @@ func (c *Collection) Delete() bool {
 	}
 	return true
 }
+
+func (c *Collection) FetchPasswords() []Password {
+	conn := GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
+	var passwords []Password
+
+	if tx := conn.Where("collection_refer = ?", c.Id).Find(&passwords); tx.Error != nil {
+		log.Error(tx.Error)
+		return nil
+	}
+	return passwords
+}

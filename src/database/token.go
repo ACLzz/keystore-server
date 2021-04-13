@@ -45,16 +45,3 @@ func (t *Token) GetUser() *User {
 	}
 	return &user
 }
-
-func (t *Token) FetchCollections() []Collection {
-	conn := GetConn()
-	DB, _ := conn.DB()
-	defer DB.Close()
-	var collections []Collection
-
-	if tx := conn.Unscoped().Where("user_refer = ?", t.UserRefer).Find(&collections); tx.Error != nil {
-		log.Error(tx.Error)
-		return nil
-	}
-	return collections
-}

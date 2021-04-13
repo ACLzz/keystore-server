@@ -18,11 +18,11 @@ func PasswordMiddleware(h http.Handler) http.Handler {
 		if !VerifyAuth(w, body) {
 			return
 		}
-		token := GetTokenObj(body["token"].(string))
+		user := GetUser(body["token"].(string))
 
 		vars := mux.Vars(r)
 		collection := vars["collection"]
-		coll := database.Collection{Title: collection, User: token.User}
+		coll := database.Collection{Title: collection, User: *user}
 		if !coll.IsExist() {
 			SendError(w, errors.CollectionNotExist, 404)
 			return

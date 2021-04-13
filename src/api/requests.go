@@ -120,7 +120,7 @@ func VerifyAuth(w http.ResponseWriter, body map[string]interface{}) bool {
 	return true
 }
 
-func GetTokenObj(token string) *database.Token {
+func GetUser(token string) *database.User {
 	conn := database.GetConn()
 	DB, _ := conn.DB()
 	defer DB.Close()
@@ -132,8 +132,7 @@ func GetTokenObj(token string) *database.Token {
 		return nil
 	}
 
-	dbToken.User = *dbToken.GetUser()
-	return &dbToken
+	return dbToken.GetUser()
 }
 
 func CheckAuthFields(body map[string]interface{}, w http.ResponseWriter) bool {
