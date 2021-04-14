@@ -9,7 +9,7 @@ It is server side of keystore -- simple self-hosted key storage
 You can run server on your local network and don't be afraid of password leaks.
 
 ## How to install it?
-Firstly, I highly recommend you go to <a href="docs/Configuration.md">config</a> section before install.
+Firstly, I highly recommend you go to <a href="docs/Configuration.md">config</a> section before install, cause config effects on installation.
 Just install go and build server in few seconds with make.
 
 ```
