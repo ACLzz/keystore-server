@@ -10,8 +10,6 @@ import (
 	"strconv"
 )
 
-// TODO password field limits
-
 func CreatePassword(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	collection := vars["collection"]
@@ -55,6 +53,10 @@ func CreatePassword(w http.ResponseWriter, r *http.Request) {
 		Login: login,
 		Password: password,
 		Email: email,
+	}
+	
+	if !CheckPasswordLimits(&passwd, w) {
+		return
 	}
 
 	if !passwd.Add(collection, user.Id) {
@@ -138,6 +140,10 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	}
 	if pswd, ok := body["password"].(string); ok {
 		password.Password = pswd
+	}
+
+	if !CheckPasswordLimits(password, w) {
+		return
 	}
 
 	if !password.Update() {

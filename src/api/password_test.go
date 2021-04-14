@@ -5,6 +5,7 @@ import (
 	"github.com/ACLzz/keystore-server/src/database"
 	"github.com/ACLzz/keystore-server/src/errors"
 	"github.com/ACLzz/keystore-server/src/tests"
+	"github.com/ACLzz/keystore-server/src/utils"
 	"gorm.io/gorm"
 	"testing"
 )
@@ -40,6 +41,80 @@ func TestPasswordMiddleware(_t *testing.T) {
 		tests.DeleteCollection(testCollectionId, user, t)
 	})
 
+	tests.DeleteUser(testUserId, _t)
+}
+
+func TestValidPasswordFields(_t *testing.T) {
+	testUserId := 17
+	tests.RegisterUser(testUserId)
+	token := tests.GetToken(testUserId, _t)
+	user := tests.GetUser(testUserId)
+	testCollectionId := 12
+	tests.CreateCollection(testCollectionId, *user)
+
+	title := "test_title"
+	login := "test_login"
+	password := "test_password"
+	path := fmt.Sprint("collection/", tests.BuildTitle(testCollectionId), "/")
+	url := fmt.Sprint(tests.BaseUrl, path)
+
+	_t.Run("minimum title", func(t *testing.T) {
+		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PasswordTitleMinLengthError.Error())
+		body, resp := tests.Post(url,
+			map[string]interface{}{"title": tests.BuildString(utils.PLoginMinLengthLimit - 1),"login": login, "password": password, "token": token}, t)
+
+		tests.CheckResp(resp, body, 422, rightBody, t)
+	})
+
+	_t.Run("maximum title", func(t *testing.T) {
+		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PasswordTitleMaxLengthError.Error())
+		body, resp := tests.Post(url,
+			map[string]interface{}{"title": tests.BuildString(utils.PasswordTitleMaxLengthLimit + 1),"login": login, "password": password, "token": token}, t)
+
+		tests.CheckResp(resp, body, 422, rightBody, t)
+	})
+
+	_t.Run("minimum login", func(t *testing.T) {
+		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PasswordLoginMinLengthError.Error())
+		body, resp := tests.Post(url,
+			map[string]interface{}{"title": title,"login": tests.BuildString(utils.PLoginMinLengthLimit - 1), "password": password, "token": token}, t)
+
+		tests.CheckResp(resp, body, 422, rightBody, t)
+	})
+
+	_t.Run("maximum login", func(t *testing.T) {
+		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PasswordLoginMaxLengthError.Error())
+		body, resp := tests.Post(url,
+			map[string]interface{}{"title": title,"login": tests.BuildString(utils.PLoginMaxLengthLimit + 1), "password": password, "token": token}, t)
+
+		tests.CheckResp(resp, body, 422, rightBody, t)
+	})
+
+	_t.Run("minimum password", func(t *testing.T) {
+		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PPasswordMinLengthError.Error())
+		body, resp := tests.Post(url,
+			map[string]interface{}{"title": title,"login": login, "password": tests.BuildString(utils.PPasswordMinLengthLimit - 1), "token": token}, t)
+
+		tests.CheckResp(resp, body, 422, rightBody, t)
+	})
+
+	_t.Run("maximum password", func(t *testing.T) {
+		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PPasswordMaxLengthError.Error())
+		body, resp := tests.Post(url,
+			map[string]interface{}{"title": title,"login": login, "password": tests.BuildString(utils.PPasswordMaxLengthLimit + 1), "token": token}, t)
+
+		tests.CheckResp(resp, body, 422, rightBody, t)
+	})
+
+	_t.Run("maximum email", func(t *testing.T) {
+		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.EmailMaxLengthError.Error())
+		body, resp := tests.Post(url,
+			map[string]interface{}{"title": title,"login": login, "password": password, "email": tests.BuildString(utils.PEmailMaxLengthLimit + 1), "token": token}, t)
+
+		tests.CheckResp(resp, body, 422, rightBody, t)
+	})
+
+	tests.DeleteCollection(testCollectionId, *user, _t)
 	tests.DeleteUser(testUserId, _t)
 }
 

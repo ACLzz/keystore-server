@@ -201,6 +201,33 @@ func CheckAuthFieldsLimits(body map[string]interface{}, w http.ResponseWriter) b
 	return true
 }
 
+func CheckPasswordLimits(p *database.Password, w http.ResponseWriter) bool {
+	if err := CheckLimits(p.Title, utils.PasswordTitleMinLengthLimit, utils.PasswordTitleMaxLengthLimit,
+		errors.PasswordTitleMinLengthError, errors.PasswordTitleMaxLengthError); err != nil {
+		SendError(w, err, 422)
+		return false
+	}
+
+	if err := CheckLimits(p.Login, utils.PLoginMinLengthLimit, utils.PLoginMaxLengthLimit,
+		errors.PasswordLoginMinLengthError, errors.PasswordLoginMaxLengthError); err != nil {
+		SendError(w, err, 422)
+		return false
+	}
+
+	if err := CheckLimits(p.Email, utils.PEmailMinLengthLimit, utils.PEmailMaxLengthLimit,
+		errors.EmailMinLengthError, errors.EmailMaxLengthError); err != nil {
+		SendError(w, err, 422)
+		return false
+	}
+
+	if err := CheckLimits(p.Password, utils.PPasswordMinLengthLimit, utils.PPasswordMaxLengthLimit,
+		errors.PPasswordMinLengthError, errors.PPasswordMaxLengthError); err != nil {
+		SendError(w, err, 422)
+		return false
+	}
+	return true
+}
+
 func CheckLimits(field string, lowLimit int, highLimit int, lowLimitError error, highLimitError error) error {
 	if len(field) > highLimit {
 		return highLimitError

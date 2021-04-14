@@ -12,10 +12,10 @@ All <span style="color:red">red</span> vars are necessary and all <span style="c
 ## <a name="create"></a> `POST` collection/{title}/
 Creates new password.
 ### body:
-- <span style="color:red">title</span>: your title for password (must be more than 2 symbols and less than 15 symbols)
+- <span style="color:red">title</span>: your title for password (must be more than 2 symbols and less than 25 symbols)
 - <span style="color:red">login</span>: your login for password (must be more than 1 symbol and less than 128 symbols)
 - <span style="color:red">password</span>: your password (must be more than 1 symbol and less than 2048 symbols)
-- <span style="color:yellow">email</span>: your title for password (must be more than 5 symbols and less than 64 symbols)
+- <span style="color:yellow">email</span>: your title for password (must be less than 64 symbols)
 - <span style="color:red">token</span>: your temporary token.
 
 ### response:
@@ -40,10 +40,10 @@ Returns password info.
 Updates password's info.
 ### body:
 - <span style="color:red">token</span>: your temporary token.
-- <span style="color:yellow">title</span>: your title for password (must be more than 2 symbols and less than 15 symbols)
+- <span style="color:yellow">title</span>: your title for password (must be more than 2 symbols and less than 25 symbols)
 - <span style="color:yellow">login</span>: your login for password (must be more than 1 symbol and less than 128 symbols)
 - <span style="color:yellow">password</span>: your password (must be more than 1 symbol and less than 2048 symbols)
-- <span style="color:yellow">email</span>: your title for password (must be more than 5 symbols and less than 64 symbols)
+- <span style="color:yellow">email</span>: your title for password (must be less than 64 symbols)
 
 ### response:
 nothing
