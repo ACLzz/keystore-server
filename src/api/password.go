@@ -10,6 +10,8 @@ import (
 	"strconv"
 )
 
+// TODO password field limits
+
 func CreatePassword(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	collection := vars["collection"]
