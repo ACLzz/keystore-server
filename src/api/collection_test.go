@@ -16,45 +16,43 @@ func TestValidTitle(_t *testing.T) {
 	token := tests.GetToken(testUserId, _t)
 	path := "collection/"
 	url := fmt.Sprint(tests.BaseUrl, path)
-	post := func(data map[string]interface{}, t *testing.T) ([]byte, *http.Response) {
-		return tests.Post(url, data, t)
+	post := func(data map[string]interface{}, headers map[string]string, t *testing.T) ([]byte, *http.Response) {
+		return tests.Post(url, data, headers, t)
 	}
 
 	_t.Run("empty title", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.NoTitleError.Error())
-		data := map[string]interface{}{"token": token}
-		body, resp := post(data, t)
+		body, resp := post(map[string]interface{}{"noNeedKey": "yep"}, map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 400, rightBody, t)
 	})
 
 	_t.Run("minimum title", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.CollectionTitleMinLengthError.Error())
-		data := map[string]interface{}{"title": tests.BuildString(utils.CollectionTitleMinLengthLimit - 1), "token": token}
-		body, resp := post(data, t)
+		data := map[string]interface{}{"title": tests.BuildString(utils.CollectionTitleMinLengthLimit - 1)}
+		body, resp := post(data, map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
 	})
 
 	_t.Run("maximum title", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.CollectionTitleMaxLengthError.Error())
-		data := map[string]interface{}{"title": tests.BuildString(utils.CollectionTitleMaxLengthLimit + 1), "token": token}
-		body, resp := post(data, t)
+		data := map[string]interface{}{"title": tests.BuildString(utils.CollectionTitleMaxLengthLimit + 1)}
+		body, resp := post(data, map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
 	})
 
 	_t.Run("non-ascii title", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.CollectionLocaleError.Error())
-		data := map[string]interface{}{"title": tests.BuildString(utils.PasswordMinLengthLimit+ 1) + "тест", "token": token}
-		body, resp := post(data, t)
+		data := map[string]interface{}{"title": tests.BuildString(utils.PasswordMinLengthLimit+ 1) + "тест"}
+		body, resp := post(data, map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
 	})
 	
 	tests.DeleteUser(testUserId, _t)
 }
-
 
 func TestCollectionAlreadyExists(t *testing.T) {
 	testUserId := 8
@@ -68,7 +66,7 @@ func TestCollectionAlreadyExists(t *testing.T) {
 	rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.CollectionExist.Error())
 	url := fmt.Sprint(tests.BaseUrl, path)
 
-	body, resp := tests.Post(url, map[string]interface{}{"title": tests.BuildTitle(testCollectionId), "token": token}, t)
+	body, resp := tests.Post(url, map[string]interface{}{"title": tests.BuildTitle(testCollectionId)}, map[string]string{"Authorization": token}, t)
 	tests.CheckResp(resp, body, 422, rightBody, t)
 
 	tests.DeleteCollection(testCollectionId, user, t)
@@ -86,7 +84,7 @@ func TestCreateCollection(t *testing.T) {
 	title := tests.BuildTitle(testCollectionId)
 	rightBody := ""
 
-	body, resp := tests.Post(url, map[string]interface{}{"title": title, "token": token}, t)
+	body, resp := tests.Post(url, map[string]interface{}{"title": title}, map[string]string{"Authorization":  token}, t)
 	tests.CheckResp(resp, body, 201, rightBody, t)
 
 	c := database.Collection{
@@ -116,7 +114,7 @@ func TestFetchCollections(t *testing.T) {
 	rightBody := fmt.Sprintf("[\"%s\",\"%s\"]", tests.BuildTitle(testCollection1Id), tests.BuildTitle(testCollection2Id))
 	url := fmt.Sprint(tests.BaseUrl, path)
 
-	body, resp := tests.Get(url, map[string]interface{}{"token": token}, t)
+	body, resp := tests.Get(url, map[string]string{"Authorization": token}, t)
 	tests.CheckResp(resp, body, 200, rightBody, t)
 
 	tests.DeleteCollection(testCollection1Id, user, t)
@@ -136,7 +134,7 @@ func TestUpdateCollection(_t *testing.T) {
 		url := fmt.Sprint(tests.BaseUrl, path)
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.CollectionNotExist.Error())
 
-		body, resp := tests.Put(url, map[string]interface{}{"title": "test", "token": token}, t)
+		body, resp := tests.Put(url, map[string]interface{}{"title": "test"}, map[string]string{"Authorization": token}, t)
 		tests.CheckResp(resp, body, 404, rightBody, t)
 	})
 	
@@ -150,7 +148,7 @@ func TestUpdateCollection(_t *testing.T) {
 		url := fmt.Sprint(tests.BaseUrl, path)
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.CollectionExist.Error())
 
-		body, resp := tests.Put(url, map[string]interface{}{"title": tests.BuildTitle(testCollection2Id), "token": token}, t)
+		body, resp := tests.Put(url, map[string]interface{}{"title": tests.BuildTitle(testCollection2Id)}, map[string]string{"Authorization": token}, t)
 		tests.CheckResp(resp, body, 422, rightBody, t)
 
 		tests.DeleteCollection(testCollection1Id, user, t)
@@ -166,7 +164,7 @@ func TestUpdateCollection(_t *testing.T) {
 		url := fmt.Sprint(tests.BaseUrl, path)
 		rightBody := ""
 
-		body, resp := tests.Put(url, map[string]interface{}{"title": newTitle, "token": token}, t)
+		body, resp := tests.Put(url, map[string]interface{}{"title": newTitle}, map[string]string{"Authorization": token}, t)
 		tests.CheckResp(resp, body, 200, rightBody, t)
 
 		conn := database.GetConn()
@@ -191,7 +189,7 @@ func TestDeleteCollection(_t *testing.T) {
 	_t.Run("collection does not exist", func(t *testing.T) {
 		path := fmt.Sprint(_path, "not_exist")
 		url := fmt.Sprint(tests.BaseUrl, path)
-		body, resp := tests.Delete(url, map[string]interface{}{"token": token}, t)
+		body, resp := tests.Delete(url, map[string]string{"Authorization": token}, t)
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.CollectionNotExist.Error())
 
 		tests.CheckResp(resp, body, 404, rightBody, t)	
@@ -203,7 +201,7 @@ func TestDeleteCollection(_t *testing.T) {
 		title := tests.BuildTitle(testCollectionId)
 		path := fmt.Sprint(_path, title)
 		url := fmt.Sprint(tests.BaseUrl, path)
-		body, resp := tests.Delete(url, map[string]interface{}{"token": token}, t)
+		body, resp := tests.Delete(url, map[string]string{"Authorization": token}, t)
 		rightBody := ""
 
 		tests.CheckResp(resp, body, 200, rightBody, t)
@@ -230,7 +228,7 @@ func TestListCollection(_t *testing.T) {
 		testCollectionId := 8
 		tests.CreateCollection(testCollectionId, user)
 		url := fmt.Sprint(_path, tests.BuildTitle(testCollectionId))
-		body, resp := tests.Get(url, map[string]interface{}{"token": token}, t)
+		body, resp := tests.Get(url, map[string]string{"Authorization": token}, t)
 		rightBody := "[]"
 
 		tests.CheckResp(resp, body, 200, rightBody, t)
@@ -247,7 +245,7 @@ func TestListCollection(_t *testing.T) {
 		tests.CreatePassword(2, *collection)
 		tests.CreatePassword(3, *collection)
 
-		body, resp := tests.Get(url, map[string]interface{}{"token": token}, t)
+		body, resp := tests.Get(url, map[string]string{"Authorization": token}, t)
 		rightBody := fmt.Sprintf("[%s,%s,%s]",
 			tests.BuildPasswordEntityString(collection, 1, t),
 			tests.BuildPasswordEntityString(collection, 2, t),

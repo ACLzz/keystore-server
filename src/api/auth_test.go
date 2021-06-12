@@ -16,7 +16,7 @@ func TestEmptyBody(t *testing.T) {
 	rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.EmptyBodyError.Error())
 	path := "auth/"
 	url := fmt.Sprint(tests.BaseUrl, path)
-	body, resp := tests.Post(url, map[string]interface{}{}, t)
+	body, resp := tests.Post(url, map[string]interface{}{}, nil, t)
 
 	tests.CheckResp(resp, body, 400, rightBody, t)
 }
@@ -25,7 +25,7 @@ func TestValidPassword(_t *testing.T) {
 	path := "auth/"
 	url := fmt.Sprint(tests.BaseUrl, path)
 	post := func(data map[string]interface{}, t *testing.T) ([]byte, *http.Response) {
-		return tests.Post(url, data, t)
+		return tests.Post(url, data, nil, t)
 	}
 	
 	_t.Run("empty password", func(t *testing.T) {
@@ -68,7 +68,7 @@ func TestValidLogin(_t *testing.T) {
 	path := "auth/"
 	url := fmt.Sprint(tests.BaseUrl, path)
 	post := func(data map[string]interface{}, t *testing.T) ([]byte, *http.Response) {
-		return tests.Post(url, data, t)
+		return tests.Post(url, data, nil, t)
 	}
 
 	_t.Run("empty login", func(t *testing.T) {
@@ -115,7 +115,8 @@ func TestUserAlreadyExists(t *testing.T) {
 	url := fmt.Sprint(tests.BaseUrl, path)
 
 	body, resp := tests.Post(url,
-		map[string]interface{}{"login": tests.BuildUsername(testUserId), "password": tests.BuildString(utils.PasswordMinLengthLimit)}, t)
+		map[string]interface{}{"login": tests.BuildUsername(testUserId), "password": tests.BuildString(utils.PasswordMinLengthLimit)},
+		nil, t)
 	tests.CheckResp(resp, body, 422, rightBody, t)
 	
 	tests.DeleteUser(testUserId, t)
@@ -129,7 +130,8 @@ func TestRegister(t *testing.T) {
 	rightBody := ""
 
 	body, resp := tests.Post(url,
-		map[string]interface{}{"login": username, "password": tests.BuildString(utils.PasswordMinLengthLimit)}, t)
+		map[string]interface{}{"login": username, "password": tests.BuildString(utils.PasswordMinLengthLimit)},
+		nil, t)
 	tests.CheckResp(resp, body, 201, rightBody, t)
 
 	u := database.User{
@@ -150,7 +152,8 @@ func TestLogin(t *testing.T) {
 		testUserId := 3
 		username := tests.BuildUsername(testUserId)
 		tests.RegisterUser(testUserId)
-		body, resp := tests.Post(url, map[string]interface{}{"login": username, "password": tests.BaseUser.Password}, t)
+		body, resp := tests.Post(url, map[string]interface{}{"login": username, "password": tests.BaseUser.Password},
+		nil, t)
 		conn := database.GetConn()
 		DB, _ := conn.DB()
 		defer DB.Close()
@@ -166,7 +169,8 @@ func TestLogin(t *testing.T) {
 	})
 
 	t.Run("invalid credentials", func(t *testing.T) {
-		body, resp := tests.Post(url, map[string]interface{}{"login": "this_user_not_exist", "password": tests.BaseUser.Password}, t)
+		body, resp := tests.Post(url, map[string]interface{}{"login": "this_user_not_exist", "password": tests.BaseUser.Password},
+		nil, t)
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.InvalidCredentials.Error())
 
 		tests.CheckResp(resp, body, 401, rightBody, t)
@@ -177,19 +181,19 @@ func TestVerifyAuth(_t *testing.T) {
 	path := "auth/"
 	url := fmt.Sprint(tests.BaseUrl, path)
 	
-	d := func(data map[string]interface{}, t *testing.T) ([]byte, *http.Response) {
-		return tests.Delete(url, data, t)
+	d := func(headers map[string]string, t *testing.T) ([]byte, *http.Response) {
+		return tests.Delete(url, headers, t)
 	}
 	
 	_t.Run("no token", func(t *testing.T) {
-		body, resp := d(map[string]interface{}{"token": ""}, t)
+		body, resp := d(nil, t)
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.NoToken)
 		
 		tests.CheckResp(resp, body, 400, rightBody, t)
 	})
 
 	_t.Run("invalid token", func(t *testing.T) {
-		body, resp := d(map[string]interface{}{"token": "invalidToken"}, t)
+		body, resp := d(map[string]string{"Authorization": "invalidToken"}, t)
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.InvalidToken)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
@@ -211,7 +215,7 @@ func TestVerifyAuth(_t *testing.T) {
 			t.Error(tx.Error)
 		}
 
-		body, resp := d(map[string]interface{}{"token": _token.Token}, t)
+		body, resp := d(map[string]string{"Authorization": _token.Token}, t)
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.ExpiredToken)
 
 		tests.CheckResp(resp, body, 403, rightBody, t)
@@ -224,15 +228,15 @@ func TestDeleteUser(t *testing.T) {
 	path := "auth/"
 	url := fmt.Sprint(tests.BaseUrl, path)
 
-	d := func(data map[string]interface{}) ([]byte, *http.Response) {
-		return tests.Delete(url, data, t)
+	d := func(headers map[string]string) ([]byte, *http.Response) {
+		return tests.Delete(url, headers, t)
 	}
 
 	testUserId := 5
 	tests.RegisterUser(testUserId)
 	token := tests.GetToken(testUserId, t)
 
-	body, resp := d(map[string]interface{}{"token": token})
+	body, resp := d(map[string]string{"Authorization": token})
 	rightBody := ""
 
 	tests.CheckResp(resp, body, 200, rightBody, t)
@@ -251,8 +255,8 @@ func TestUpdateUser(t *testing.T) {
 	path := "auth/"
 	url := fmt.Sprint(tests.BaseUrl, path)
 
-	p := func(data map[string]interface{}) ([]byte, *http.Response) {
-		return tests.Put(url, data, t)
+	p := func(data map[string]interface{}, headers map[string]string) ([]byte, *http.Response) {
+		return tests.Put(url, data, headers, t)
 	}
 
 	testUserId := 6
@@ -261,7 +265,7 @@ func TestUpdateUser(t *testing.T) {
 	tests.RegisterUser(testUserId)
 	token := tests.GetToken(testUserId, t)
 
-	body, resp := p(map[string]interface{}{"token": token, "login": updatedUsername, "password": updatedPassword})
+	body, resp := p(map[string]interface{}{"login": updatedUsername, "password": updatedPassword}, map[string]string{"Authorization": token})
 	rightBody := ""
 
 	tests.CheckResp(resp, body, 200, rightBody, t)
@@ -294,7 +298,7 @@ func TestReadUser(t *testing.T) {
 	testUserId := 7
 	tests.RegisterUser(testUserId)
 	token := tests.GetToken(testUserId, t)
-	body, resp := tests.Get(url, map[string]interface{}{"token": token}, t)
+	body, resp := tests.Get(url, map[string]string{"Authorization": token}, t)
 
 	var user database.User
 	conn := database.GetConn()

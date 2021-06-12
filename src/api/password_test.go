@@ -21,7 +21,7 @@ func TestPasswordMiddleware(_t *testing.T) {
 		url := fmt.Sprint(tests.BaseUrl, path)
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.CollectionNotExist.Error())
 		body, resp := tests.Post(url,
-			map[string]interface{}{"title": "whatever", "login": "whatever", "password": "whatever", "token": token}, t)
+			map[string]interface{}{"title": "whatever", "login": "whatever", "password": "whatever"}, map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 404, rightBody, t)
 	})
@@ -35,7 +35,7 @@ func TestPasswordMiddleware(_t *testing.T) {
 
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.InvalidPasswordId)
 		body, resp := tests.Get(url,
-			map[string]interface{}{"token": token}, t)
+			map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
 		tests.DeleteCollection(testCollectionId, user, t)
@@ -61,7 +61,8 @@ func TestValidPasswordFields(_t *testing.T) {
 	_t.Run("minimum title", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PasswordTitleMinLengthError.Error())
 		body, resp := tests.Post(url,
-			map[string]interface{}{"title": tests.BuildString(utils.PLoginMinLengthLimit - 1),"login": login, "password": password, "token": token}, t)
+			map[string]interface{}{"title": tests.BuildString(utils.PLoginMinLengthLimit - 1),"login": login, "password": password},
+			map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
 	})
@@ -69,7 +70,8 @@ func TestValidPasswordFields(_t *testing.T) {
 	_t.Run("maximum title", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PasswordTitleMaxLengthError.Error())
 		body, resp := tests.Post(url,
-			map[string]interface{}{"title": tests.BuildString(utils.PasswordTitleMaxLengthLimit + 1),"login": login, "password": password, "token": token}, t)
+			map[string]interface{}{"title": tests.BuildString(utils.PasswordTitleMaxLengthLimit + 1),"login": login, "password": password},
+			map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
 	})
@@ -77,7 +79,8 @@ func TestValidPasswordFields(_t *testing.T) {
 	_t.Run("minimum login", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PasswordLoginMinLengthError.Error())
 		body, resp := tests.Post(url,
-			map[string]interface{}{"title": title,"login": tests.BuildString(utils.PLoginMinLengthLimit - 1), "password": password, "token": token}, t)
+			map[string]interface{}{"title": title,"login": tests.BuildString(utils.PLoginMinLengthLimit - 1), "password": password},
+			map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
 	})
@@ -85,7 +88,8 @@ func TestValidPasswordFields(_t *testing.T) {
 	_t.Run("maximum login", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PasswordLoginMaxLengthError.Error())
 		body, resp := tests.Post(url,
-			map[string]interface{}{"title": title,"login": tests.BuildString(utils.PLoginMaxLengthLimit + 1), "password": password, "token": token}, t)
+			map[string]interface{}{"title": title,"login": tests.BuildString(utils.PLoginMaxLengthLimit + 1), "password": password},
+			map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
 	})
@@ -93,7 +97,8 @@ func TestValidPasswordFields(_t *testing.T) {
 	_t.Run("minimum password", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PPasswordMinLengthError.Error())
 		body, resp := tests.Post(url,
-			map[string]interface{}{"title": title,"login": login, "password": tests.BuildString(utils.PPasswordMinLengthLimit - 1), "token": token}, t)
+			map[string]interface{}{"title": title,"login": login, "password": tests.BuildString(utils.PPasswordMinLengthLimit - 1)},
+			map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
 	})
@@ -101,7 +106,8 @@ func TestValidPasswordFields(_t *testing.T) {
 	_t.Run("maximum password", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PPasswordMaxLengthError.Error())
 		body, resp := tests.Post(url,
-			map[string]interface{}{"title": title,"login": login, "password": tests.BuildString(utils.PPasswordMaxLengthLimit + 1), "token": token}, t)
+			map[string]interface{}{"title": title,"login": login, "password": tests.BuildString(utils.PPasswordMaxLengthLimit + 1)},
+			map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
 	})
@@ -109,7 +115,8 @@ func TestValidPasswordFields(_t *testing.T) {
 	_t.Run("maximum email", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.EmailMaxLengthError.Error())
 		body, resp := tests.Post(url,
-			map[string]interface{}{"title": title,"login": login, "password": password, "email": tests.BuildString(utils.PEmailMaxLengthLimit + 1), "token": token}, t)
+			map[string]interface{}{"title": title,"login": login, "password": password, "email": tests.BuildString(utils.PEmailMaxLengthLimit + 1)},
+			map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
 	})
@@ -135,7 +142,7 @@ func TestCreatePassword(_t *testing.T) {
 	_t.Run("no title", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.NoTitleError.Error())
 		body, resp := tests.Post(url,
-			map[string]interface{}{"login": login, "password": password, "token": token}, t)
+			map[string]interface{}{"login": login, "password": password}, map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 400, rightBody, t)
 	})
@@ -143,21 +150,22 @@ func TestCreatePassword(_t *testing.T) {
 	_t.Run("no password", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.NoPasswordError.Error())
 		body, resp := tests.Post(url,
-			map[string]interface{}{"title": title, "login": login, "token": token}, t)
+			map[string]interface{}{"title": title, "login": login}, map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 400, rightBody, t)
 	})
 	_t.Run("no login", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.NoLoginError.Error())
 		body, resp := tests.Post(url,
-			map[string]interface{}{"title": title, "password": password, "token": token}, t)
+			map[string]interface{}{"title": title, "password": password}, map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 400, rightBody, t)
 	})
 	_t.Run("create password", func(t *testing.T) {
 		rightBody := ""
 		body, resp := tests.Post(url,
-			map[string]interface{}{"title": title,"login": login, "password": password, "token": token}, t)
+			map[string]interface{}{"title": title,"login": login, "password": password},
+			map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 201, rightBody, t)
 	})
@@ -182,7 +190,7 @@ func TestReadPassword(_t *testing.T) {
 
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PasswordNotExist)
 		body, resp := tests.Get(url,
-			map[string]interface{}{"token": token}, t)
+			map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 404, rightBody, t)
 	})
@@ -196,7 +204,7 @@ func TestReadPassword(_t *testing.T) {
 		rightBody := fmt.Sprintf("{\"email\":\"%s\",\"login\":\"%s\",\"password\":\"%s\",\"title\":\"%s\"}",
 			tests.BasePassword.Email, tests.BasePassword.Login, tests.BasePassword.Password, tests.BuildTitle(1))
 		body, resp := tests.Get(url,
-			map[string]interface{}{"token": token}, t)
+			map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 200, rightBody, t)
 	})
@@ -221,7 +229,7 @@ func TestDeletePassword(_t *testing.T) {
 
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PasswordNotExist)
 		body, resp := tests.Delete(url,
-			map[string]interface{}{"token": token}, t)
+			map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 404, rightBody, t)
 	})
@@ -234,7 +242,7 @@ func TestDeletePassword(_t *testing.T) {
 
 		rightBody := ""
 		body, resp := tests.Delete(url,
-			map[string]interface{}{"token": token}, t)
+			map[string]string{"Authorization": token}, t)
 
 		tests.CheckResp(resp, body, 200, rightBody, t)
 		
@@ -272,7 +280,8 @@ func TestUpdatePassword(_t *testing.T) {
 		newTitle := "password's new title"
 		newLogin := "new login"
 
-		body, resp := tests.Put(url, map[string]interface{}{"title": newTitle, "login": newLogin, "token": token}, t)
+		body, resp := tests.Put(url, map[string]interface{}{"title": newTitle, "login": newLogin},
+		map[string]string{"Authorization": token}, t)
 		tests.CheckResp(resp, body, 200, rightBody, t)
 
 		conn := database.GetConn()
@@ -303,7 +312,7 @@ func TestUpdatePassword(_t *testing.T) {
 		newEmail := "newEmail"
 
 		body, resp := tests.Put(url, map[string]interface{}{"title": newTitle, "login": newLogin,
-			"password": newPassword, "email": newEmail, "token": token}, t)
+			"password": newPassword, "email": newEmail}, map[string]string{"Authorization": token}, t)
 		tests.CheckResp(resp, body, 200, rightBody, t)
 
 		conn := database.GetConn()

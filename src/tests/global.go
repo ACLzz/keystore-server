@@ -29,13 +29,25 @@ func BuildString(length int) string {
 	return str
 }
 
-func Get(url string, data map[string]interface{}, t *testing.T) ([]byte, *http.Response) {
-	return customRequest("GET", url, data, t)
+func Get(url string, headers map[string]string, t *testing.T) ([]byte, *http.Response) {
+	return customRequest("GET", url, nil, headers, t)
 }
 
-func Post(url string, data map[string]interface{}, t *testing.T) ([]byte, *http.Response) {
+func Post(url string, data map[string]interface{}, headers map[string]string, t *testing.T) ([]byte, *http.Response) {
 	jvalues, _ := json.Marshal(data)
-	resp, err := Client.Post(url, "application/json", bytes.NewBuffer(jvalues))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jvalues))
+	if err != nil {
+		t.Error(err)
+	}
+
+	if headers != nil {
+		for header := range headers {
+			req.Header.Add(header, headers[header])
+		}
+	}
+	req.Header.Set("ContentType", "application/json")
+
+	resp, err := Client.Do(req)
 	if err != nil {
 		t.Error(err)
 	}
@@ -45,19 +57,25 @@ func Post(url string, data map[string]interface{}, t *testing.T) ([]byte, *http.
 	return body, resp
 }
 
-func Delete(url string, data map[string]interface{}, t *testing.T) ([]byte, *http.Response) {
-	return customRequest("DELETE", url, data, t)
+func Delete(url string, headers map[string]string, t *testing.T) ([]byte, *http.Response) {
+	return customRequest("DELETE", url, nil, headers, t)
 }
 
-func Put(url string, data map[string]interface{}, t *testing.T) ([]byte, *http.Response) {
-	return customRequest("PUT", url, data, t)
+func Put(url string, data map[string]interface{}, headers map[string]string, t *testing.T) ([]byte, *http.Response) {
+	return customRequest("PUT", url, data, headers, t)
 }
 
-func customRequest(method string, url string, data map[string]interface{}, t *testing.T) ([]byte, *http.Response) {
+func customRequest(method string, url string, data map[string]interface{}, headers map[string]string, t *testing.T) ([]byte, *http.Response) {
 	jvalues, _ := json.Marshal(data)
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(jvalues))
 	if err != nil {
 		t.Error(err)
+	}
+
+	if headers != nil {
+		for header := range headers {
+			req.Header.Add(header, headers[header])
+		}
 	}
 
 	resp, err := Client.Do(req)

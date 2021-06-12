@@ -12,15 +12,10 @@ import (
 
 func PasswordMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body := ConvBody(w, r)
-		if body == nil {
+		if !VerifyAuth(w, r) {
 			return
 		}
-
-		if !VerifyAuth(w, body) {
-			return
-		}
-		user := GetUser(body["token"].(string))
+		user := GetUser(GetToken(r))
 
 		vars := mux.Vars(r)
 		collection := vars["collection"]
@@ -45,7 +40,7 @@ func PasswordMiddleware(h http.Handler) http.Handler {
 
 func CollectionMiddleWare(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !VerifyAuth(w, ConvBody(w, r)) {
+		if !VerifyAuth(w, r) {
 			return
 		}
 		h.ServeHTTP(w, r)

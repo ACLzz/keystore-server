@@ -56,15 +56,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func ReadUser(w http.ResponseWriter, r *http.Request) {
-	body := ConvBody(w, r)
-	if body == nil {
-		return
-	}
-	if !VerifyAuth(w, body) {
+	if !VerifyAuth(w, r) {
 		return
 	}
 
-	user := GetUser(body["token"].(string))
+	user := GetUser(GetToken(r))
 	if user == nil {
 		SendError(w, errors.UserNotExists, 404)
 		return
@@ -82,7 +78,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if body == nil {
 		return
 	}
-	if !VerifyAuth(w, body) {
+	if !VerifyAuth(w, r) {
 		return
 	}
 
@@ -90,7 +86,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := GetUser(body["token"].(string))
+	user := GetUser(GetToken(r))
 	if user == nil {
 		SendError(w, errors.UserNotExists, 404)
 		return
@@ -113,14 +109,10 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
-	body := ConvBody(w, r)
-	if body == nil {
+	if !VerifyAuth(w, r) {
 		return
 	}
-	if !VerifyAuth(w, body) {
-		return
-	}
-	user := GetUser(body["token"].(string))
+	user := GetUser(GetToken(r))
 	if user == nil {
 		SendError(w, errors.UserNotExists, 404)
 		return

@@ -13,7 +13,7 @@ func CreateCollection(w http.ResponseWriter, r *http.Request) {
 	if body == nil {
 		return
 	}
-	user := GetUser(body["token"].(string))
+	user := GetUser(GetToken(r))
 	_title, ok := body["title"]
 	if !ok {
 		SendError(w, errors.NoTitleError, 400)
@@ -41,11 +41,7 @@ func CreateCollection(w http.ResponseWriter, r *http.Request) {
 }
 
 func FetchCollections(w http.ResponseWriter, r *http.Request) {
-	body := ConvBody(w, r)
-	if body == nil {
-		return
-	}
-	user := GetUser(body["token"].(string))
+	user := GetUser(GetToken(r))
 	if user == nil {
 		return
 	}
@@ -61,11 +57,7 @@ func FetchCollections(w http.ResponseWriter, r *http.Request) {
 func ListCollection(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	collection := vars["collection"]
-	body := ConvBody(w, r)
-	if body == nil {
-		return
-	}
-	user := GetUser(body["token"].(string))
+	user := GetUser(GetToken(r))
 	if user == nil {
 		return
 	}
@@ -97,7 +89,7 @@ func UpdateCollection(w http.ResponseWriter, r *http.Request) {
 	if body == nil {
 		return
 	}
-	user := GetUser(body["token"].(string))
+	user := GetUser(GetToken(r))
 	if !CheckCollectionTitle(title, w) {
 		return
 	}
@@ -135,12 +127,8 @@ func UpdateCollection(w http.ResponseWriter, r *http.Request) {
 func DeleteCollection(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	title := vars["collection"]
-	
-	body := ConvBody(w, r)
-	if body == nil {
-		return
-	}
-	user := GetUser(body["token"].(string))
+
+	user := GetUser(GetToken(r))
 	if !CheckCollectionTitle(title, w) {
 		return
 	}

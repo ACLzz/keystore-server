@@ -79,20 +79,20 @@ func ConvBody(w http.ResponseWriter, r *http.Request) map[string]interface{} {
 	return jbody
 }
 
-func VerifyAuth(w http.ResponseWriter, body map[string]interface{}) bool {
-	token, ok := body["token"]
-	if !ok || token == "" {
+func VerifyAuth(w http.ResponseWriter, r *http.Request) bool {
+	token := GetToken(r)
+	if token == "" {
 		SendError(w, errors.NoToken, 400)
 		return false
 	}
 
 	// Check token for non-digit and non-letters symbols
-	for _, run := range token.(string) {
+	for _, run := range token {
 		if (run <= 90 && run >= 65) || (run <= 57 && run >= 48) || (run <= 122 && run >= 97) {
 			continue
 		}
 		SendError(w, errors.TokenDeniedSymbolsError, 422)
-		log.Warn("Strange token was sent: ", token.(string))
+		log.Warn("Strange token was sent: ", token)
 		return false
 	}
 
@@ -118,6 +118,31 @@ func VerifyAuth(w http.ResponseWriter, body map[string]interface{}) bool {
 	}
 
 	return true
+}
+
+func GetToken(r *http.Request) string {
+	authHeader, ok := r.Header["Authorization"]
+	if !ok {
+		return ""
+	}
+	// implementation for standard http basic auth field
+	/*authHeader = strings.Split(authHeader[0], " ")
+	if len(authHeader) < 2 {
+		return ""
+	}
+
+	encodedToken := authHeader[1]
+	if token, err := base64.StdEncoding.DecodeString(encodedToken); err != nil {
+		return ""
+	} else {
+		creds := strings.Split(string(token), ":")
+		if len(creds) < 2 {
+			return ""
+		}
+		return creds[1]
+	}*/
+
+	return authHeader[0]
 }
 
 func GetUser(token string) *database.User {

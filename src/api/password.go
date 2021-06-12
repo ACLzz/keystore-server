@@ -17,7 +17,7 @@ func CreatePassword(w http.ResponseWriter, r *http.Request) {
 	if body == nil {
 		return
 	}
-	user := GetUser(body["token"].(string))
+	user := GetUser(GetToken(r))
 	if user == nil {
 		return
 	}
@@ -71,11 +71,7 @@ func CreatePassword(w http.ResponseWriter, r *http.Request) {
 func ReadPassword(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	_pid := vars["pid"]
-	body := ConvBody(w, r)
-	if body == nil {
-		return
-	}
-	user := GetUser(body["token"].(string))
+	user := GetUser(GetToken(r))
 	if user == nil {
 		return
 	}
@@ -110,7 +106,7 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	if body == nil {
 		return
 	}
-	user := GetUser(body["token"].(string))
+	user := GetUser(GetToken(r))
 	if user == nil {
 		return
 	}
@@ -156,11 +152,7 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 func DeletePassword(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	_pid := vars["pid"]
-	body := ConvBody(w, r)
-	if body == nil {
-		return
-	}
-	user := GetUser(body["token"].(string))
+	user := GetUser(GetToken(r))
 	if user == nil {
 		return
 	}
