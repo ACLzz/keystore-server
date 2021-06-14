@@ -4,7 +4,7 @@ import "fmt"
 
 
 func noField(field string) string {
-	return fmt.Sprintf("no \"%s\" was sent", field)
+	return fmt.Sprintf("no '%s' was sent", field)
 }
 
 func lengthMax(field string, limit int) string {
