@@ -137,6 +137,21 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	if pswd, ok := body["password"].(string); ok {
 		password.Password = pswd
 	}
+	if coll, ok := body["collection"].(string); ok {
+		collection := database.Collection{
+			Title:     coll,
+			User:      *user,
+		}
+
+		if !collection.IsExist() {
+			log.Infof("User %d trying to update %d password's collection from %s to %s but it is doesn't exist",
+				collection.User.Id, password.Id, password.Collection.Title, coll)
+			SendError(w, errors.CollectionNotExist, 422)
+			return
+		}
+
+		password.Collection = collection
+	}
 
 	if !CheckPasswordLimits(password, w) {
 		return

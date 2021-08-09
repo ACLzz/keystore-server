@@ -266,14 +266,17 @@ func TestUpdatePassword(_t *testing.T) {
 	tests.RegisterUser(testUserId)
 	token := tests.GetToken(testUserId, _t)
 	user := tests.GetUser(testUserId)
-	testCollectionId := 11
-	tests.CreateCollection(testCollectionId, *user)
-	collection := GetCollection(tests.BuildTitle(testCollectionId), user)
-	_path := fmt.Sprint("collection/", tests.BuildTitle(testCollectionId), "/")
+	testCollectionId1 := 11
+	testCollectionId2 := 30
+	tests.CreateCollection(testCollectionId1, *user)
+	tests.CreateCollection(testCollectionId2, *user)
+	collection1 := GetCollection(tests.BuildTitle(testCollectionId1), user)
+	collection2 := GetCollection(tests.BuildTitle(testCollectionId2), user)
+	_path := fmt.Sprint("collection/", tests.BuildTitle(testCollectionId1), "/")
 
 	_t.Run("update partially", func(t *testing.T) {
-		tests.CreatePassword(1, *collection)
-		passwordId := tests.GetPassword(collection, 1, t).Id
+		tests.CreatePassword(1, *collection1)
+		passwordId := tests.GetPassword(collection1, 1, t).Id
 		path := fmt.Sprint(_path, passwordId)
 		url := fmt.Sprint(tests.BaseUrl, path)
 		rightBody := ""
@@ -289,7 +292,7 @@ func TestUpdatePassword(_t *testing.T) {
 		defer DB.Close()
 		
 		var password database.Password
-		if tx := conn.Unscoped().Where("title = ? and login = ? and collection_refer = ?", newTitle, newLogin, collection.Id).
+		if tx := conn.Unscoped().Where("title = ? and login = ? and collection_refer = ?", newTitle, newLogin, collection1.Id).
 			First(&password); tx.Error != nil {
 			t.Error(tx.Error)
 		}
@@ -300,8 +303,8 @@ func TestUpdatePassword(_t *testing.T) {
 	})
 
 	_t.Run("update full", func(t *testing.T) {
-		tests.CreatePassword(2, *collection)
-		passwordId := tests.GetPassword(collection, 2, t).Id
+		tests.CreatePassword(2, *collection1)
+		passwordId := tests.GetPassword(collection1, 2, t).Id
 		path := fmt.Sprint(_path, passwordId)
 		url := fmt.Sprint(tests.BaseUrl, path)
 		rightBody := ""
@@ -311,8 +314,9 @@ func TestUpdatePassword(_t *testing.T) {
 		newPassword := "newPassword"
 		newEmail := "newEmail"
 
-		body, resp := tests.Put(url, map[string]interface{}{"title": newTitle, "login": newLogin,
-			"password": newPassword, "email": newEmail}, map[string]string{"Authorization": token}, t)
+		body, resp := tests.Put(url, map[string]interface{}{
+			"title": newTitle, "login": newLogin,"password": newPassword, "email": newEmail, "collection": tests.BuildTitle(testCollectionId2)},
+			map[string]string{"Authorization": token}, t)
 		tests.CheckResp(resp, body, 200, rightBody, t)
 
 		conn := database.GetConn()
@@ -321,12 +325,13 @@ func TestUpdatePassword(_t *testing.T) {
 
 		var password database.Password
 		if tx := conn.Unscoped().Where("title = ? and login = ? and password = ? and email = ? and collection_refer = ?",
-			newTitle, newLogin, newPassword, newEmail, collection.Id).
+			newTitle, newLogin, newPassword, newEmail, collection2.Id).
 			First(&password); tx.Error != nil {
 			t.Error(tx.Error)
 		}
 	})
 
-	tests.DeleteCollection(testCollectionId, *user, _t)
+	tests.DeleteCollection(testCollectionId1, *user, _t)
+	tests.DeleteCollection(testCollectionId2, *user, _t)
 	tests.DeleteUser(testUserId, _t)
 }
