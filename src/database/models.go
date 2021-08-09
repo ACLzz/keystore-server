@@ -24,7 +24,7 @@ type Password struct {
 	Id					int			`gorm:"primaryKey"`
 	Title				string
 	Email				string
-	Login			string
+	Login				string
 	Password			string
 
 	CollectionRefer		string

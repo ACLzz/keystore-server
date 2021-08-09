@@ -4,3 +4,5 @@ bin/*
 !bin/.gitkeep
 
 extra/dev_*
+
+go.sum

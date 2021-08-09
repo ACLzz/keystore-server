@@ -11,8 +11,8 @@ const CollectionTitleMinLengthLimit = 2
 
 const PasswordTitleMaxLengthLimit = 25
 const PPasswordMaxLengthLimit = 2048
-const PLoginMaxLengthLimit = 128
-const PEmailMaxLengthLimit = 64
+const PLoginMaxLengthLimit = 256
+const PEmailMaxLengthLimit = 256
 const PasswordTitleMinLengthLimit = 2
 const PPasswordMinLengthLimit = 1
 const PLoginMinLengthLimit = 1
