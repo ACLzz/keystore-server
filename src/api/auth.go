@@ -4,11 +4,17 @@ import (
 	"fmt"
 	"github.com/ACLzz/keystore-server/src/database"
 	"github.com/ACLzz/keystore-server/src/errors"
+	"github.com/ACLzz/keystore-server/src/utils"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
 func Register(w http.ResponseWriter, r *http.Request) {
+	if !utils.Config.AllwRegstr {
+		SendError(w, errors.RegistrationDisabled, http.StatusForbidden)
+		return
+	}
+
 	body := ConvBody(w, r)
 	if body == nil {
 		return

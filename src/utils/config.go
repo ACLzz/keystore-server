@@ -25,6 +25,7 @@ type config struct {
 	Timezone		string	`yaml:"timezone"`
 	TokenLifetime	int		`yaml:"token_lifetime"`
 	Salt			string	`yaml:"salt"`
+	AllwRegstr		bool	`yaml:"allow_registration"`
 }
 
 var Config = loadConfig()

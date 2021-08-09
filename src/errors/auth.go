@@ -25,3 +25,5 @@ var ExpiredToken = errors.New("your token has expired")
 
 var UserExists = errors.New("user already exists")
 var UserNotExists = errors.New("user not exists")
+
+var RegistrationDisabled = errors.New("administrator disabled registration for new users")

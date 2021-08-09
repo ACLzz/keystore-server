@@ -6,6 +6,7 @@ db_port: 5432
 db_name: "keystore"
 db_username: "keykeeper"
 db_password: "CHANGE_PASSWORD"
+allow_registration: true
 
 timezone: "Europe/Zaporozhye"
 token_lifetime: 3600              # (in seconds)

@@ -15,6 +15,7 @@ Below I will explain each option mission
 - db_username: Username of role which will make changes in database.
 - db_password: Password for role which will make changes in database. Don't forget to CHANGE it.
 - timezone: Your server's timezone.
-- token_lifetime: Count of ours while token will be valid.
+- token_lifetime: Count of seconds while token will be valid.
+- allow_registration: `true` or `false` for enable or disable registration.
 - salt: Additional string for hash creation, uses in tokens creation. You MUST change it to anything else.
   <br/>
