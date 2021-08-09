@@ -19,7 +19,7 @@ func (t *Token) genToken() {
 	now := time.Now()
 	loc, _ := time.LoadLocation(utils.Config.Timezone)
 	t.CreationDate = now.In(loc)
-	t.ExpireDate = now.Add(time.Duration(utils.Config.TokenLifetime * 3600000000000)).In(loc)
+	t.ExpireDate = now.Add(time.Duration(utils.Config.TokenLifetime * int(time.Second))).In(loc)
 
 	jstruct, err := json.Marshal(t)
 	if err != nil {

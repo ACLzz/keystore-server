@@ -8,6 +8,6 @@ db_username: "keykeeper"
 db_password: "CHANGE_PASSWORD"
 
 timezone: "Europe/Zaporozhye"
-token_lifetime: 744             # 31 * 24
+token_lifetime: 3600              # (in seconds)
 
 salt: "test_SaLtT"
