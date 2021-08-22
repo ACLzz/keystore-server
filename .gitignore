@@ -6,3 +6,4 @@ bin/*
 extra/dev_*
 
 go.sum
+.env

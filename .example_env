@@ -1,0 +1,15 @@
+ADDR="127.0.0.1"
+PORT=8402
+MODE="test"
+
+DB_HOST="127.0.0.1"
+DB_PORT=5432
+DB_NAME="test_keystore"
+DB_USERNAME="keykeeper"
+DB_PASSWORD="CHANGE_PASSWORD"
+ALLOW_REGISTRATION=true
+
+TIMEZONE="Europe/Zaporozhye"
+TOKEN_LIFETIME=3600              # (in seconds)
+
+SALT="CHANGE_SALT"

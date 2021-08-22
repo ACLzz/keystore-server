@@ -2,78 +2,81 @@ package utils
 
 import (
 	"fmt"
+	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
 type config struct {
-	Addr 			string 	`yaml:"addr"`
-	Port			int		`yaml:"port"`
+	Addr 			string
+	Port			int
 	Dev				bool
 	Test			bool
 	
-	DBHost			string	`yaml:"db_host"`
-	DBPort			int		`yaml:"db_port"`
-	DBName			string	`yaml:"db_name"`
-	DBUsername		string	`yaml:"db_username"`
-	DBPassword		string	`yaml:"db_password"`
+	DBHost			string
+	DBPort			int
+	DBName			string
+	DBUsername		string
+	DBPassword		string
 	DSN				string
 
-	Timezone		string	`yaml:"timezone"`
-	TokenLifetime	int		`yaml:"token_lifetime"`
-	Salt			string	`yaml:"salt"`
-	AllwRegstr		bool	`yaml:"allow_registration"`
+	Timezone		string
+	TokenLifetime	int
+	Salt			string
+	AllwRegstr		bool
 }
 
 var Config = loadConfig()
 
 func loadConfig() config {
-	confObj := config{}
-	confFn := "config.yml"
-
-	confObj.Dev, confObj.Test = getMode()
-
-	if confObj.Dev {
-		confFn = fmt.Sprint("dev_", confFn)
-	} else if confObj.Test{
-		confFn = fmt.Sprint("test_", confFn)
-	}
-
-	path := fmt.Sprintf("%s/%s", AppFolder, confFn)
-	f, err := ioutil.ReadFile(path)
+	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatalf("Got error while reading %s config file: %v\n", path, err)
+		log.Warning(".env file doesn't located in directory, default values are set")
+	}
+	getStr := func(key string, def string) string {
+		val, ok := os.LookupEnv(key)
+		if !ok {
+			log.Warningf("variable %s is not set, setting to default", key)
+			return def
+		}
+		return val
+	}
+	getInt := func(key string, def int) int {
+		val, ok := os.LookupEnv(key)
+		if !ok {
+			log.Warningf("variable %s is not set, setting to default", key)
+			return def
+		}
+		i, _ := strconv.Atoi(val)
+		return i
 	}
 
-	err = yaml.Unmarshal(f, &confObj)
-	if err != nil {
-		log.Fatalf("Got error while unmarshalling %s config file: %v\n", confFn, err)
+	confObj := config{
+		Addr: getStr("ADDR", "127.0.0.1"),
+		Port: getInt("PORT", 8402),
+
+		DBHost: getStr("DB_HOST", "127.0.0.1"),
+		DBPort: getInt("DB_PORT", 5432),
+		DBName: getStr("DB_NAME", "test_keystore"),
+		DBUsername: getStr("DB_USERNAME", "keykeeper"),
+		DBPassword: getStr("DB_PASSWORD", "CHANGE_PASSWORD"),
+
+		Timezone: getStr("TIMEZONE", "Europe/Zaporozhye"),
+		TokenLifetime: getInt("TOKEN_LIFETIME", 3600),
+		Salt: getStr("SALT", "CHANGE_SALT"),
+		AllwRegstr: strings.ToLower(getStr("ALLOW_REGISTRATION", "true")) == "true",
+		Dev: strings.ToLower(getStr("MODE", "dev")) == "dev",
+		Test: strings.ToLower(getStr("MODE", "test")) == "test",
 	}
-	
-	if confObj.Test {
-		confObj.DBName = "test_" + confObj.DBName
-	}
+	confObj.DSN = fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%d sslmode=disable TimeZone=%s",
+		confObj.DBUsername, confObj.DBPassword, confObj.DBName, confObj.DBHost, confObj.DBPort, confObj.Timezone)
 	
 	// Check timezone
 	if _, err := time.LoadLocation(confObj.Timezone); err != nil {
 		log.Fatal("Invalid timezone: ", confObj.Timezone)
 	}
-
-	confObj.DSN = fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%d sslmode=disable TimeZone=%s",
-		confObj.DBUsername, confObj.DBPassword, confObj.DBName, confObj.DBHost, confObj.DBPort, confObj.Timezone)
 	return confObj
-}
-
-
-func getMode() (bool, bool) {
-	dev, test := false, false
-	if os.Getenv("MODE") == "dev" {
-		dev = true
-	} else if os.Getenv("MODE") == "test" {
-		test = true
-	}
-	return dev, test
 }

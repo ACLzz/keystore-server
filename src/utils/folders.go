@@ -6,16 +6,12 @@ import (
 	"os/user"
 )
 
-var AppFolder, LogFolder = getFolders()
+var LogFolder = getFolders()
 
-func getFolders() (string, string) {
+func getFolders() string {
 	usr, err := user.Current()
 	if err != nil {
 		log.Fatal( err )
 	}
-
-	appFolder := fmt.Sprint(usr.HomeDir, "/.kss")
-	logFolder := fmt.Sprint(appFolder, "/logs")
-
-	return appFolder, logFolder
+	return fmt.Sprint(usr.HomeDir, "/.kss/logs")
 }

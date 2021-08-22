@@ -1,5 +1,5 @@
 # Configuration guide
-In this document i will explain all config options
+In this document I will explain all config options
 
 ## keystore server folder
 Configs and server's, clients' certificates are stored in `~/.kss` folder.<br/>
