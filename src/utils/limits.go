@@ -1,18 +1,18 @@
 package utils
 
-const PasswordMaxLengthLimit = 25
+const PasswordMaxLengthLimit = 128
 const LoginMaxLengthLimit = 20
 
 const PasswordMinLengthLimit = 8
 const LoginMinLengthLimit = 4
 
-const CollectionTitleMaxLengthLimit = 40
+const CollectionTitleMaxLengthLimit = 128
 const CollectionTitleMinLengthLimit = 2
 
-const PasswordTitleMaxLengthLimit = 25
-const PPasswordMaxLengthLimit = 2048
-const PLoginMaxLengthLimit = 256
-const PEmailMaxLengthLimit = 256
+const PasswordTitleMaxLengthLimit = 128
+const PPasswordMaxLengthLimit = 4096
+const PLoginMaxLengthLimit = 128
+const PEmailMaxLengthLimit = 128
 const PasswordTitleMinLengthLimit = 2
 const PPasswordMinLengthLimit = 1
 const PLoginMinLengthLimit = 1

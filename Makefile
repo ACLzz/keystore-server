@@ -45,7 +45,10 @@ create_database:
 	export isDev=`sh -c 'if [ $$MODE = test ]; then echo 1; else echo 0; fi'`; \
     psql -h $(DB_HOST) -p $(DB_PORT) -U $$DB_USER -d postgres -v db="$(DB_NAME)" -v username="$(NEW_DB_USER)" -v dev=$$isDev -v password="$(NEW_USER_PASSWORD)" -f database-setup.sql
 
-setup: build move_config create_database
+tidy:
+	go mod tidy
+
+setup: tidy build move_config create_database
 	go mod tidy
 
 tests:
