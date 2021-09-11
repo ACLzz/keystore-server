@@ -16,7 +16,10 @@ jobs:
       - image: circleci/golang:latest
       - image: circleci/postgres:latest
         environment:
-          POSTGRES_PASSWORD: keyskeep
+          POSTGRES_USER: postgres
+          POSTGRES_DB: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+
 
     environment:
       MODE: test
@@ -28,12 +31,16 @@ jobs:
       - checkout
 
       - run:
+          name: Installing psql
+          command: sudo apt install postgresql-client
+      
+      - run:
           name: Waiting for Postgres to be ready
           command: dockerize -wait tcp://localhost:5432 -timeout 1m
 
       - run:
-          name: Installing psql
-          command: sudo apt install postgresql-client
+          name: Create database
+          command: make create_database
 
       - run:
           name: Setting up
@@ -45,4 +52,6 @@ jobs:
 
       - run:
           name: Run tests
-          command: make tests
+          command: |
+            ./bin/server &
+            make tests

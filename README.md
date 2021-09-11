@@ -21,6 +21,13 @@ Just install go and build server in few seconds with make.
 
 If all ok, binary must be at `bin` folder
 
+## Docker
+You can use docker image for keystore, just run with root:
+```
+~ » docker-compose build
+~ » docker-compose up
+```
+
 ## How to use it?
 Keystore has an http API, so all communications goes through that API.<br/>
 Keystore has official client <a href="https://github.com/ACLzz/keywarden">Keywarden</a><br/>

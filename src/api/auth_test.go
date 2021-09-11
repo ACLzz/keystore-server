@@ -308,7 +308,9 @@ func TestReadUser(t *testing.T) {
 		t.Error("User haven't updated username")
 	}
 
-	rightBody := fmt.Sprintf("{\"registered\":\"%s\",\"username\":\"%s\"}", user.RegistrationDate.Format("2006-01-02T15:04:05Z07:00"), user.Username)
+	location, _ := time.LoadLocation("UTC")
+	rightBody := fmt.Sprintf("{\"registered\":\"%s\",\"username\":\"%s\"}", user.RegistrationDate.In(location).
+		Format("2006-01-02T15:04:05Z"), user.Username)
 
 	tests.CheckResp(resp, body, 200, rightBody, t)
 	tests.DeleteUser(testUserId, t)

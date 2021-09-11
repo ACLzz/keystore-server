@@ -1,0 +1,42 @@
+version: "3.9"
+services:
+  db:
+    image: "postgres"
+    restart: always
+    env_file:
+      - ./.docker_env
+    expose:
+      - 5432
+    ports:
+      - 5432:5432
+    volumes:
+      - db-data:/var/lib/postgresql/data/
+      - ./initdb.sh:/docker-entrypoint-initdb.d/initdb.sh
+      - ./database-setup.sql:/database-setup.sql
+      - ./.docker_env:/docker-entrypoint-initdb.d/.env
+      - ./.example_env:/docker-entrypoint-initdb.d/.example_env
+
+    healthcheck:
+      test: [ "CMD", "psql", "-U", "keykeeper", "-d", "keystore" ]
+      interval: 20s
+      timeout: 10s
+      retries: 20
+
+  keystore:
+    container_name: keystore
+    build: .
+    restart: always
+    env_file:
+      - ./.docker_env
+    expose:
+      - 8402
+    ports:
+      - 8402:8402
+    depends_on:
+      db:
+        condition: service_healthy
+    links:
+      - db
+
+volumes:
+  db-data:

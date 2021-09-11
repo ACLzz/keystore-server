@@ -58,11 +58,11 @@ func loadConfig() config {
 		Addr: getStr("ADDR", "127.0.0.1"),
 		Port: getInt("PORT", 8402),
 
-		DBHost: getStr("DB_HOST", "127.0.0.1"),
-		DBPort: getInt("DB_PORT", 5432),
-		DBName: getStr("DB_NAME", "test_keystore"),
-		DBUsername: getStr("DB_USERNAME", "keykeeper"),
-		DBPassword: getStr("DB_PASSWORD", "CHANGE_PASSWORD"),
+		DBHost: getStr("POSTGRES_HOST", "localhost"),
+		DBPort: getInt("POSTGRES_PORT", 5432),
+		DBName: getStr("POSTGRES_NAME", "keystore"),
+		DBUsername: getStr("POSTGRES_USERNAME", "keykeeper"),
+		DBPassword: getStr("POSTGRES_PASSWORD", "CHANGE_PASSWORD"),
 
 		Timezone: getStr("TIMEZONE", "Europe/Zaporozhye"),
 		TokenLifetime: getInt("TOKEN_LIFETIME", 3600),
