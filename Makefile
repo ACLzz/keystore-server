@@ -37,7 +37,7 @@ setup_docker:
 	sudo docker-compose up
 
 setup_bin: setup
-	cp ./example_env ./bin/.env
+	cp $(CONFIG) ./bin/.env
 
 
 tests: tidy
