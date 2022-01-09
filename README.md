@@ -16,16 +16,16 @@ Just install go and build server in few seconds with make.
 ~ » sudo pacman -S go git make postgresql --noconfirm
 ~ » sudo systemctl start postgresql
 ~ » git clone https://github.com/ACLzz/keystore-server.git
-~ » make setup
+~ » make setup_bin
 ```
 
-If all ok, binary must be at `bin` folder
+If all ok, binary must be at `bin` folder.
+!!! Don't forget to copy .env file (./bin/.env) if you will move binary of server
 
 ## Docker
 You can use docker image for keystore, just run with root:
 ```
-~ » docker-compose build
-~ » docker-compose up
+~ » make setup_docker
 ```
 
 ## How to use it?

@@ -2,14 +2,15 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/ACLzz/keystore-server/src/database"
 	"github.com/ACLzz/keystore-server/src/errors"
 	"github.com/ACLzz/keystore-server/src/tests"
 	"github.com/ACLzz/keystore-server/src/utils"
 	"gorm.io/gorm"
-	"net/http"
-	"testing"
-	"time"
 )
 
 func TestEmptyBody(t *testing.T) {
@@ -27,12 +28,12 @@ func TestValidPassword(_t *testing.T) {
 	post := func(data map[string]interface{}, t *testing.T) ([]byte, *http.Response) {
 		return tests.Post(url, data, nil, t)
 	}
-	
+
 	_t.Run("empty password", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.NoPasswordError.Error())
 		data := map[string]interface{}{"login": tests.BuildString(utils.LoginMinLengthLimit)}
 		body, resp := post(data, t)
-		
+
 		tests.CheckResp(resp, body, 400, rightBody, t)
 	})
 
@@ -44,20 +45,19 @@ func TestValidPassword(_t *testing.T) {
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
 	})
-	
+
 	_t.Run("maximum password", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PasswordMaxLengthError.Error())
 		data := map[string]interface{}{"login": tests.BuildString(utils.LoginMinLengthLimit),
 			"password": tests.BuildString(utils.PasswordMaxLengthLimit + 1)}
 		body, resp := post(data, t)
-		
+
 		tests.CheckResp(resp, body, 422, rightBody, t)
 	})
 
 	_t.Run("non-ascii password", func(t *testing.T) {
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.PasswordLocaleError.Error())
-		data := map[string]interface{}{"login": tests.BuildString(utils.LoginMinLengthLimit), "password":
-		tests.BuildString(utils.PasswordMinLengthLimit+ 1) + "тест"}
+		data := map[string]interface{}{"login": tests.BuildString(utils.LoginMinLengthLimit), "password": tests.BuildString(utils.PasswordMinLengthLimit+1) + "тест"}
 		body, resp := post(data, t)
 
 		tests.CheckResp(resp, body, 422, rightBody, t)
@@ -118,7 +118,7 @@ func TestUserAlreadyExists(t *testing.T) {
 		map[string]interface{}{"login": tests.BuildUsername(testUserId), "password": tests.BuildString(utils.PasswordMinLengthLimit)},
 		nil, t)
 	tests.CheckResp(resp, body, 422, rightBody, t)
-	
+
 	tests.DeleteUser(testUserId, t)
 }
 
@@ -153,7 +153,7 @@ func TestLogin(t *testing.T) {
 		username := tests.BuildUsername(testUserId)
 		tests.RegisterUser(testUserId)
 		body, resp := tests.Post(url, map[string]interface{}{"login": username, "password": tests.BaseUser.Password},
-		nil, t)
+			nil, t)
 		conn := database.GetConn()
 		DB, _ := conn.DB()
 		defer DB.Close()
@@ -170,7 +170,7 @@ func TestLogin(t *testing.T) {
 
 	t.Run("invalid credentials", func(t *testing.T) {
 		body, resp := tests.Post(url, map[string]interface{}{"login": "this_user_not_exist", "password": tests.BaseUser.Password},
-		nil, t)
+			nil, t)
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.InvalidCredentials.Error())
 
 		tests.CheckResp(resp, body, 401, rightBody, t)
@@ -180,15 +180,15 @@ func TestLogin(t *testing.T) {
 func TestVerifyAuth(_t *testing.T) {
 	path := "auth/"
 	url := fmt.Sprint(tests.BaseUrl, path)
-	
+
 	d := func(headers map[string]string, t *testing.T) ([]byte, *http.Response) {
 		return tests.Delete(url, headers, t)
 	}
-	
+
 	_t.Run("no token", func(t *testing.T) {
 		body, resp := d(nil, t)
 		rightBody := fmt.Sprintf("{\"error\":\"%s\"}\n", errors.NoToken)
-		
+
 		tests.CheckResp(resp, body, 400, rightBody, t)
 	})
 
@@ -206,7 +206,7 @@ func TestVerifyAuth(_t *testing.T) {
 			UserRefer:    "1",
 			User:         database.User{Id: 1, Username: tests.BuildUsername(testUserId)},
 			CreationDate: time.Now(),
-			ExpireDate:   time.Now().Add(-24*time.Hour),
+			ExpireDate:   time.Now().Add(-24 * time.Hour),
 		}
 		conn := database.GetConn()
 		DB, _ := conn.DB()
@@ -308,9 +308,9 @@ func TestReadUser(t *testing.T) {
 		t.Error("User haven't updated username")
 	}
 
-	location, _ := time.LoadLocation("UTC")
+	location, _ := time.LoadLocation("UTC") // utils.Config.Timezone for local tests
 	rightBody := fmt.Sprintf("{\"registered\":\"%s\",\"username\":\"%s\"}", user.RegistrationDate.In(location).
-		Format("2006-01-02T15:04:05Z"), user.Username)
+		Format("2006-01-02T15:04:05Z"), user.Username) // "2006-01-02T15:04:05-07:00" since 13.4-6
 
 	tests.CheckResp(resp, body, 200, rightBody, t)
 	tests.DeleteUser(testUserId, t)

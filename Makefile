@@ -32,6 +32,14 @@ tidy:
 setup: tidy build create_folders
 	$(info >>>> Setup complete!)
 
+setup_docker:
+	sudo docker-compose build
+	sudo docker-compose up
+
+setup_bin: setup
+	cp ./example_env ./bin/.env
+
+
 tests: tidy
 	$(info $(CONFIG))
 	go test -count=1 \
