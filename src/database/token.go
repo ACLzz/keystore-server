@@ -4,9 +4,10 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/ACLzz/keystore-server/src/utils"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 func (t *Token) genToken() {
@@ -14,7 +15,7 @@ func (t *Token) genToken() {
 	DB, _ := conn.DB()
 	defer DB.Close()
 	defer conn.Commit()
-	
+
 	// Prepare token dates
 	now := time.Now()
 	loc, _ := time.LoadLocation(utils.Config.Timezone)
@@ -44,4 +45,16 @@ func (t *Token) GetUser() *User {
 		return nil
 	}
 	return &user
+}
+
+func (t *Token) Revoke() {
+	conn := GetConn()
+	DB, _ := conn.DB()
+	defer DB.Close()
+	defer conn.Commit()
+
+	conn.Unscoped().Where("token = ?", t.Token).First(&t)
+	if tx := conn.Unscoped().Delete(&t); tx.Error != nil {
+		log.Error(tx.Error)
+	}
 }

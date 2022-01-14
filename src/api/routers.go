@@ -1,20 +1,20 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/ACLzz/keystore-server/src/utils"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
-	"net/http"
 )
 
 type routesMap []routeType
 
 type routeType struct {
-	Route	string
+	Route   string
 	Handler func(http.ResponseWriter, *http.Request)
 	Methods []string
 }
-
 
 func MainRouter() *mux.Router {
 	log.Info("Initializing main router")
@@ -33,6 +33,7 @@ func AuthRouter(parent *mux.Router) *mux.Router {
 	log.Info("Initializing auth router")
 	return buildRouter(parent, "/auth", routesMap{
 		{"/login", Login, []string{"POST"}},
+		{"/logout", Logout, []string{"POST"}},
 		{"", ReadUser, []string{"GET"}},
 		{"", Register, []string{"POST"}},
 		{"", UpdateUser, []string{"PUT"}},
@@ -50,14 +51,14 @@ func CollectionRouter(parent *mux.Router) *mux.Router {
 		{"/{collection}", DeleteCollection, []string{"DELETE"}},
 	})
 	r.Use(CollectionMiddleWare)
-	
+
 	PasswordRouter(r)
 	return r
 }
 
 func PasswordRouter(parent *mux.Router) *mux.Router {
 	log.Info("Initializing passwords router")
-	
+
 	r := buildRouter(parent, "/{collection}", routesMap{
 		{"", CreatePassword, []string{"POST"}},
 		{"/{pid}", ReadPassword, []string{"GET"}},
@@ -65,7 +66,7 @@ func PasswordRouter(parent *mux.Router) *mux.Router {
 		{"/{pid}", DeletePassword, []string{"DELETE"}},
 	})
 	r.Use(PasswordMiddleware)
-	
+
 	return r
 }
 
@@ -78,10 +79,10 @@ func DevRouter(parent *mux.Router) *mux.Router {
 
 func buildRouter(parent *mux.Router, path string, routes routesMap) *mux.Router {
 	/*
-	parent: parent router
-	path: sub-path for router
-	routes: map of sub-route
-	 */
+		parent: parent router
+		path: sub-path for router
+		routes: map of sub-route
+	*/
 	r := parent.PathPrefix(path).Subrouter()
 	for _, route := range routes {
 		for _, method := range route.Methods {

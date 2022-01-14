@@ -2,11 +2,12 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/ACLzz/keystore-server/src/database"
 	"github.com/ACLzz/keystore-server/src/errors"
 	"github.com/ACLzz/keystore-server/src/utils"
 	log "github.com/sirupsen/logrus"
-	"net/http"
 )
 
 func Register(w http.ResponseWriter, r *http.Request) {
@@ -19,7 +20,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	if body == nil {
 		return
 	}
-	
+
 	if isBodyValid := CheckAuthFields(body, w); !isBodyValid {
 		return
 	}
@@ -61,6 +62,21 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	SendResp(w, &map[string]interface{}{"token": token}, 202)
 }
 
+func Logout(w http.ResponseWriter, r *http.Request) {
+	if !VerifyAuth(w, r) {
+		return
+	}
+	log.Infof("Revoking token for %s user", GetUser(GetToken(r)).Username)
+
+	token := GetToken(r)
+	t := database.Token{Token: token}
+	t.Revoke()
+
+	SendResp(w, &map[string]interface{}{
+		"ok": true,
+	}, 200)
+}
+
 func ReadUser(w http.ResponseWriter, r *http.Request) {
 	if !VerifyAuth(w, r) {
 		return
@@ -74,7 +90,7 @@ func ReadUser(w http.ResponseWriter, r *http.Request) {
 	log.Info("Getting info for ", user.Id, " user")
 
 	SendResp(w, &map[string]interface{}{
-		"username": user.Username,
+		"username":   user.Username,
 		"registered": user.RegistrationDate.Format("2006-01-02T15:04:05Z07:00"),
 	}, 200)
 }
@@ -106,7 +122,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		user.Password = password.(string)
 		user.Password = user.HashPassword()
 	}
-	
+
 	if user.Update() {
 		SendResp(w, nil, 200)
 	} else {
